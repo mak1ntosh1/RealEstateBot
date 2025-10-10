@@ -13,7 +13,7 @@ services:
       - ./postgres_config/pg_hba.conf:/etc/postgresql/pg_hba.conf
       - ./bot/photos/photos_estates:/app/bot/photos/photos_estates
     ports:
-      - "5433:5432"
+      - "5432:5432"
 
     restart: unless-stopped
     healthcheck:

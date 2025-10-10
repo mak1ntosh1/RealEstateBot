@@ -95,4 +95,4 @@ class PhotosRealty(BaseModel):
 
 if __name__ == '__main__':
     db.connect()
-    db.create_tables([Realty, PhotosRealty, Favorites, City_Districts, Apartment_Parameters, Users])
+    db.create_tables([Users, Apartment_Parameters, City_Districts, Realty, Favorites, PhotosRealty])

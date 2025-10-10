@@ -305,6 +305,34 @@ files = [
 ]
 
 [[package]]
+name = "click"
+version = "8.3.0"
+description = "Composable command line interface toolkit"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "click-8.3.0-py3-none-any.whl", hash = "sha256:9b9f285302c6e3064f4330c05f05b81945b2a39544279343e6e7c5f27a9baddc"},
+    {file = "click-8.3.0.tar.gz", hash = "sha256:e7b8232224eba16f4ebe410c25ced9f7875cb5f3263ffc93cc3e8da705e229c4"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+description = "Cross-platform colored terminal text."
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
+groups = ["main"]
+markers = "platform_system == \"Windows\""
+files = [
+    {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
+    {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
+]
+
+[[package]]
 name = "dotenv"
 version = "0.9.9"
 description = "Deprecated package"
@@ -654,6 +682,22 @@ groups = ["main"]
 files = [
     {file = "peewee-3.18.2.tar.gz", hash = "sha256:77a54263eb61aff2ea72f63d2eeb91b140c25c1884148e28e4c0f7c4f64996a0"},
 ]
+
+[[package]]
+name = "peewee-migrations"
+version = "0.3.32"
+description = "Migration engine for peewee orm"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "peewee-migrations-0.3.32.tar.gz", hash = "sha256:813f7089946aa26228d1e40daa0c30746ca94b805a449cc930f499ca32f5929f"},
+    {file = "peewee_migrations-0.3.32-py3-none-any.whl", hash = "sha256:225ccff8535e9d8b4b8aa4697d1d93eca5f651477708f6dfeb60168256e976fb"},
+]
+
+[package.dependencies]
+click = ">=7.0"
+peewee = ">=3.6.4"
 
 [[package]]
 name = "propcache"
@@ -1216,4 +1260,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13"
-content-hash = "0f378d931328f22beb526b1fcd298432e3fb31a27c0685cf0f9297dd60b8a8f9"
+content-hash = "858287abc559efe1f7c5c329a4df65f5499afe08de3c0d59726b9b1015824842"
