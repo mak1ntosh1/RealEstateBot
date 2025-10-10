@@ -1,17 +1,25 @@
+FROM rust:slim AS uv-builder
 # Установка uv
-FROM rust:slim AS uv-installer
-RUN cargo install uv
+RUN cargo install uv --root /usr/local
 
-FROM python:3.13.8-alpine3.22
 FROM python:3.11-slim-buster AS base
+# Копируем скомпилированный бинарник uv с первого этапа
+COPY --from=uv-builder /usr/local/bin/uv /usr/local/bin/uv
+
+# Установка необходимых зависимостей
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN apk add --no-cache postgresql-dev gcc python3-dev musl-dev
-
 COPY requirements.txt .
-RUN python -m pip install --upgrade pip && pip install -r requirements.txt
+
+RUN uv venv --system && uv sync
 
 COPY . .
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "-u", "main.py"]
