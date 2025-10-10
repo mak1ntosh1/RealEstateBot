@@ -1,22 +1,23 @@
 [project]
-name = "RealEstateBot"
+name = "botapp"
 version = "0.1.0"
+description = ""
+authors = [
+    {name = "mak1ntoshi",email = "rudin.alex2005@mail.ru"}
+]
 readme = "README.md"
 requires-python = ">=3.13"
 
-dependencies = [
-"aiogram~=3.3.0",
-"peewee~=3.16.0",
-"pycbrf~=1.1.0",
-"requests~=2.32.4",
-"psycopg2~=2.9.10",
-"dotenv~=0.9.9",
-"python-dotenv~=1.1.0",
-"psycopg2-binary~=2.9.10",
-"pytest~=8.4.1",
-"pytest-asyncio~=1.0.0",
-]
 
 [build-system]
-requires = ["setuptools>=61.0.0"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
+[tool.poetry.dependencies]
+aiogram = "^3.22.0"
+peewee = "^3.18.2"
+psycopg2-binary = "^2.9.11"
+requests = "^2.32.5"
