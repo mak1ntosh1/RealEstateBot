@@ -14,7 +14,6 @@ def get_choice_lang_kb(ad_id=None):
         InlineKeyboardButton(text='Türk 🇹🇷', callback_data=f'choice_lang_tr_{ad_id}')
     )
     ikb.row(
-        InlineKeyboardButton(text='Українська 🇺🇦', callback_data=f'choice_lang_ua_{ad_id}'),
         InlineKeyboardButton(text='Русский 🇷🇺', callback_data=f'choice_lang_ru_{ad_id}')
     )
     return ikb.as_markup()
