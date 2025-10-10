@@ -14,7 +14,7 @@ BOT_NAME = 'getdomix_bot'
 
 
 
-ADMIN_CHAT_ID = -1002694523715  # ID администратора для уведомлений
+ADMIN_CHAT_ID = -4728916434  # ID администратора для уведомлений
 COUNT_IN_PAGE = 15
 
 

@@ -29,7 +29,7 @@ def add_all_options(user_id_db: int, options: dict):
 
 if __name__ == '__main__':
     cities = [city_district.city_name for city_district in City_Districts.select(City_Districts.city_name).distinct()]
-    user = Users.get(Users.user_id == 8062956903)
+    user = Users.get(Users.user_id == 8488874560)
 
     options = {
         'number_rooms': ["rooms_1_0", "rooms_1_1", "rooms_2_1", "rooms_3_1", "rooms_4_1", "rooms_5_1_more"],
@@ -51,8 +51,6 @@ if __name__ == '__main__':
     }
 
     # 1. Получаем список значений из словаря 'options'
-    # Важно! Порядок важен, если вы хотите сопоставить значения с ключами по индексу.
-    # Лучше использовать keys() и values() вместе, чтобы потом собрать словарь.
     keys = list(options.keys())
     values = list(options.values())
 
@@ -62,7 +60,6 @@ if __name__ == '__main__':
     print(f"\nTotal possible combinations (if not stopped early): {2 * len(options['number_rooms']) * len(options['floors_in_house']) * len(options['floor']) * len(options['square']) * len(options['city']) * len(options['ad_type']) * len(options['type_property']) * len(options['object_type']) * len(options['street']) * len(options['price']) * len(options['description']) * len(options['furniture']) * len(options['animals']) * len(options['children'])}")
 
     # 3. Перебираем все комбинации и создаем новый словарь для каждой
-    # Этот цикл может выполняться очень долго, если комбинаций много!
     count = 0
     for combination_values in all_combinations:
         # Создаем словарь для текущей комбинации
@@ -70,12 +67,11 @@ if __name__ == '__main__':
 
         districts = City_Districts.select().where(City_Districts.city_name == base_dict.get('city'))
         for district in districts[:2]:
-            final_combination_dict = base_dict.copy()  # Создаем копию, чтобы не менять base_dict
+            final_combination_dict = base_dict.copy()
             final_combination_dict['district'] = district.district
 
-            # Теперь final_combination_dict содержит город И район, и это уникальная комбинация
             count += 1
-            # print(f"Processed {count} combinations. Example: {final_combination_dict}")
+            print(f"Processed {count} combinations. Example: {final_combination_dict}")
 
             add_all_options(user.id, final_combination_dict)
 
