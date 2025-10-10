@@ -8,11 +8,11 @@ def get_text(key: str, lang: str = 'ru') -> str:
     """ get text based on language settings """
     match lang:
         case 'tr':
-            return LEXICON_TR[key]
+            return LEXICON_TR.get(key)
         case 'ru':
-            return LEXICON_RU[key]
+            return LEXICON_RU.get(key)
         case _: # by default in English
-            return LEXICON_EN[key]
+            return LEXICON_EN.get(key)
 
 
 def get_text_info_ad_full(realty, lang, result: bool = None) -> str:
@@ -74,7 +74,7 @@ def get_text_info_ad_incomplete(realty, lang) -> str:
     ).replace(
         '{id}', str(realty.id)
     ).replace(
-        '{agency}', get_text(realty.agency, lang) or "None"
+        '{agency}', get_text(realty.agency, lang) or "Не указано"
     ).replace(
         '{agency_name}', f'{get_text("agency_name", lang)} {realty.agency_name}' if realty.agency_name else ""
     )
