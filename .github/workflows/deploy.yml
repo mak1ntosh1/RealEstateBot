@@ -1,0 +1,27 @@
+name: Deploy Telegram Bot to Ubuntu Server 🤖
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: 🚀 Подтягиваем изменения на сервер
+      uses: actions/checkout@v4
+
+    - name: 🐳 Деплоим на Ubuntu Server
+      run: |
+        PROJECT_NAME="realestatebot-project"
+        
+        cd "${{ github.workspace }}/docker"
+        
+        docker compose -p "${PROJECT_NAME}" down || true
+        docker compose -p "${PROJECT_NAME}" up -d --build --force-recreate
+      env:
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}

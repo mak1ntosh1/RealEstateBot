@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres
+    container_name: database_real_estate
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGUSER: postgres
+      POSTGRES_DB: RealEstateBot
+    volumes:
+      - data_db:/var/lib/postgresql/data
+      - ../db_init:/docker-entrypoint-initdb.d/
+      - ./postgres_config/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./postgres_config/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./bot/photos/photos_estates:/app/bot/photos/photos_estates
+    ports:
+      - "5433:5432"
+
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready', "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  bot:
+    build:
+      context: ..
+      dockerfile: ./Dockerfile
+    container_name: bot_real_estate
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USER: postgres
+      DB_NAME: RealEstateBot
+      DB_HOST: db
+      DB_PORT: 5432
+      BOT_TOKEN: ${BOT_TOKEN}
+    restart:  unless-stopped
+    depends_on:
+      - db
+
+volumes:
+  data_db:
