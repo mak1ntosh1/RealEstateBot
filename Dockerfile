@@ -5,16 +5,15 @@ RUN apt-get update && \
     build-essential \
     libpq-dev \
     python3-dev \
-    python3-pip \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY pyproject.toml .
 
-RUN python3 -m pip install uv && \
-    uv venv .venv && \
-    uv sync
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- --system && \
+    /usr/local/bin/uv pip install --system
 
 COPY . .
 
@@ -26,10 +25,9 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-COPY --from=builder /app/ /app/
-
-ENV PATH="/app/.venv/bin:$PATH"
+COPY . .
 
 ENTRYPOINT ["python", "-u", "main.py"]
