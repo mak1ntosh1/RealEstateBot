@@ -7,8 +7,6 @@ from misc import bot, dispatcher as dp
 
 
 async def main() -> None:
-    await bot.send_message(8062956903, '✅ Бот запущен')
-
     setup_all_routers(dp)
 
     dp.update.middleware(BanMiddleware())
