@@ -12,6 +12,8 @@ RUN apt-get update && \
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+ENV PATH="/root/.local/bin:${PATH}"
+
 WORKDIR /app
 
 COPY requirements.txt .
@@ -30,6 +32,7 @@ FROM python:3.13-slim-bookworm AS production
 RUN apt-get update && \
     apt-get install -y --no-install-recommends libpq5 && \
     rm -rf /var/lib/apt/lists/*
+
 
 WORKDIR /app
 
