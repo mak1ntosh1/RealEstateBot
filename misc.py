@@ -3,5 +3,5 @@ from aiogram.client.default import DefaultBotProperties
 
 from config import settings
 
-bot = Bot(settings.bot.OKEN, default=DefaultBotProperties(parse_mode='HTML'))
+bot = Bot(settings.bot.TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
 dispatcher = Dispatcher()
