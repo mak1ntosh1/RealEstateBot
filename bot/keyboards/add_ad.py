@@ -77,7 +77,7 @@ def get_children_kb(lang: str) -> InlineKeyboardMarkup:
 def get_rooms_kb(lang, callback_data_str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
-    for param in settings.SearchConstants.PARAMS_CREATE:
+    for param in settings.search.PARAMS_CREATE:
         builder.row(InlineKeyboardButton(text=get_text(param, lang), callback_data=f"rooms_{param}"))
 
     builder.row(InlineKeyboardButton(text=get_text('back', lang), callback_data=callback_data_str))
