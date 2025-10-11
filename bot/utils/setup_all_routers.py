@@ -10,7 +10,7 @@ from config import settings
 def setup_all_routers(dispatcher):
     print(f"Поиск роутеров в папке: {settings.PathSettings.HANDLERS_DIR}")
 
-    for file_path in settings.PathSettings.HANDLERS_DIR.rglob("*.py"):
+    for file_path in settings.paths.HANDLERS_DIR.rglob("*.py"):
         if file_path.name == "__init__.py":
             continue
 

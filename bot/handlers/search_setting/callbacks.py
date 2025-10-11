@@ -24,7 +24,7 @@ async def start_configure_search(call: CallbackQuery, state: FSMContext):
     await state.set_state(SearchSettings.ad_type)
     await call.message.delete()
     await call.message.answer_photo(
-        photo=settings.ImageIDs.SETTINGS_SEARCH,
+        photo=settings.images.SETTINGS_SEARCH,
         caption=get_text('select_ad_type', lang),
         reply_markup=get_ad_type_kb(user.ad_type, lang)
     )
@@ -74,7 +74,7 @@ async def select_city(call: CallbackQuery, state: FSMContext):
         )
         filtered_params = [
             param.title_parameter for param in active_params
-            if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
+            if param.title_parameter in settings.search.PARAMS_SEARCH
         ]
 
         await call.message.edit_caption(caption=get_text('select_apartment_params', lang),
@@ -103,7 +103,7 @@ async def select_property_type2(call: CallbackQuery, state: FSMContext):
     )
     filtered_params = [
         param.title_parameter for param in active_params
-        if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
+        if param.title_parameter in settings.search.PARAMS_SEARCH
     ]
 
     if type_object == 'land':
@@ -135,7 +135,7 @@ async def select_property_type(call: CallbackQuery, state: FSMContext):
     )
     filtered_params = [
         param.title_parameter for param in active_params
-        if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
+        if param.title_parameter in settings.search.PARAMS_SEARCH
     ]
 
     await state.set_state(SearchSettings.buy_select_apartment_params)
@@ -146,13 +146,13 @@ async def select_property_type(call: CallbackQuery, state: FSMContext):
 
 # Выбор параметров квартиры
 @router.callback_query(F.data.startswith("param_"))
-async def select_apartment_params(call: CallbackQuery, state: FSMContext):
+async def select_apartment_params(call: CallbackQuery):
     param = call.data.split("_", 1)[-1]
     user = Users.get(Users.user_id == call.from_user.id)
 
     selected_params = [
         param.title_parameter for param in user.parameters
-        if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
+        if param.title_parameter in settings.search.PARAMS_SEARCH
     ]
 
     if param in selected_params:
@@ -333,7 +333,7 @@ async def any_option(call: CallbackQuery, state: FSMContext):
 
             params = [
                 param for param in user.parameters
-                if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
+                if param.title_parameter in settings.search.PARAMS_SEARCH
             ]
             [user_param.delete_instance() for user_param in params]
 
@@ -415,7 +415,7 @@ async def format_settings_text(user_id: int, data: dict, lang: str = 'ru') -> st
 
     params = [
         param.title_parameter for param in user.parameters
-        if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
+        if param.title_parameter in settings.search.PARAMS_SEARCH
     ]
 
     ad_type = get_text(data.get("ad_type", "rent"), lang)

@@ -60,7 +60,7 @@ async def all_ads(call: CallbackQuery):
     except Exception as e:
         await call.message.delete()
         await call.message.answer_photo(
-            photo=settings.ImageIDs.ADMIN_PANEL,
+            photo=settings.images.ADMIN_PANEL,
             caption=text,
             reply_markup=keyboard
         )

@@ -31,7 +31,7 @@ async def start_message(message: Message):
         )
 
         await message.answer_photo(
-            photo=settings.ImageIDs.MAIN_MENU,
+            photo=settings.images.MAIN_MENU,
             caption=get_text(key='main_menu', lang=user.language),
             reply_markup=get_main_menu_kb(user.language)
         )
@@ -100,7 +100,7 @@ async def get_id(message: Message):
 @router.message(Command("admin"))
 @handle_only_admin
 async def admin_panel(message: Message, user_id = None):
-    user_channel_status = await bot.get_chat_member(chat_id=settings.BotSettings.ADMIN_CHAT_ID, user_id=user_id if user_id else message.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=settings.bot.ADMIN_CHAT_ID, user_id=user_id if user_id else message.from_user.id)
     if user_channel_status.status != 'left':
         count_users = Users.select().count()
         active_adds = Realty.select().where(Realty.consent_admin == True).count()
@@ -120,7 +120,7 @@ async def admin_panel(message: Message, user_id = None):
 '''
 
         await message.answer_photo(
-            photo=settings.ImageIDs.ADMIN_PANEL,
+            photo=settings.images.ADMIN_PANEL,
             caption=text,
             reply_markup=get_admin_panel_kb()
         )
@@ -128,7 +128,7 @@ async def admin_panel(message: Message, user_id = None):
 
 @router.message(Command("rm_me"))
 async def remove_me(message: Message):
-    user_channel_status = await bot.get_chat_member(chat_id=settings.BotSettings.ADMIN_CHAT_ID, user_id=message.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=settings.bot.ADMIN_CHAT_ID, user_id=message.from_user.id)
     if user_channel_status.status != 'left':
         user = Users.get_or_none(Users.user_id == message.from_user.id)
         if user:

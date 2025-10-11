@@ -27,7 +27,7 @@ async def favorites_(call: CallbackQuery):
         with suppress(Exception):
             await call.message.delete()
         await call.message.answer_photo(
-            photo=settings.ImageIDs.FAVORITES_ADS,
+            photo=settings.images.FAVORITES_ADS,
             caption=get_text('your_list_favorites', lang),
             reply_markup=keyboard
         )

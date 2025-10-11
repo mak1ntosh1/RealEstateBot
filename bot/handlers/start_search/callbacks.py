@@ -28,7 +28,7 @@ async def start_search(call: CallbackQuery, state: FSMContext):
     search_query = await search_realty(user, without_filters)
 
     # Задаем LIMIT для первой страницы: на 1 больше, чтобы проверить наличие следующей
-    limit = settings.BotSettings.COUNT_CARDS_IN_BATCH + 1
+    limit = settings.bot.COUNT_CARDS_IN_BATCH + 1
     offset = 0  # Первая страница всегда OFFSET=0
 
     # Применяем лимит и загружаем данные (выполняем SQL-запрос)
@@ -36,10 +36,10 @@ async def start_search(call: CallbackQuery, state: FSMContext):
     search_results = list(search_query)
 
     # Подготовка данных для отображения
-    realty_to_show = search_results[:settings.BotSettings.COUNT_CARDS_IN_BATCH]
+    realty_to_show = search_results[:settings.bot.COUNT_CARDS_IN_BATCH]
 
     # Проверяем, есть ли следующая страница (если результатов больше, чем лимит пачки)
-    has_more = len(search_results) > settings.BotSettings.COUNT_CARDS_IN_BATCH
+    has_more = len(search_results) > settings.bot.COUNT_CARDS_IN_BATCH
 
     # Выполняем быстрый запрос COUNT для получения общего числа
     total_results_count = search_query.select(fn.COUNT(Realty.id)).scalar()
@@ -51,7 +51,7 @@ async def start_search(call: CallbackQuery, state: FSMContext):
         result_text += f"{get_text('no_results_found', lang)}"
 
     await call.message.answer_photo(
-        photo=settings.ImageIDs.SEARCH,
+        photo=settings.images.SEARCH,
         caption=result_text
     )
 
@@ -95,8 +95,8 @@ async def more(call: CallbackQuery):
 
     # Определение LIMIT и OFFSET для пагинации
     # LIMIT = Загружаем на 1 объявление больше, чтобы понять, есть ли следующая страница.
-    limit = settings.BotSettings.COUNT_CARDS_IN_BATCH + 1
-    offset = (page - 1) * settings.BotSettings.COUNT_CARDS_IN_BATCH
+    limit = settings.bot.COUNT_CARDS_IN_BATCH + 1
+    offset = (page - 1) * settings.bot.COUNT_CARDS_IN_BATCH
 
     # Вызов оптимизированного поиска
     search_query = await search_realty(user)
@@ -112,9 +112,9 @@ async def more(call: CallbackQuery):
         reply_markup=get_realty_card_kb(realty, user.user_id, page=page, lang=lang)
     )
 
-    realty_to_show = search_results[:settings.BotSettings.COUNT_CARDS_IN_BATCH]
+    realty_to_show = search_results[:settings.bot.COUNT_CARDS_IN_BATCH]
     print(realty_to_show)
-    has_more = len(search_results) > settings.BotSettings.COUNT_CARDS_IN_BATCH
+    has_more = len(search_results) > settings.bot.COUNT_CARDS_IN_BATCH
     print(has_more)
     if realty_to_show:
         result_text = f"{get_text('search_started', lang)}\n\n" \

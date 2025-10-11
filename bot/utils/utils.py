@@ -145,10 +145,10 @@ def format_realty_card(realty) -> str:
 
 
 def get_share_link(realty, lang) -> str:
-    message_text = get_text('get_text_info_for_share', lang).replace('{bot_name}', settings.BotSettings.BOT_NAME)
+    message_text = get_text('get_text_info_for_share', lang).replace('{bot_name}', settings.bot.BOT_NAME)
 
     encoded_share_message_text = quote(message_text)
-    encoded_share_target_url = quote(f"https://t.me/{settings.BotSettings.BOT_NAME}?start={realty.id}", safe='')
+    encoded_share_target_url = quote(f"https://t.me/{settings.bot.BOT_NAME}?start={realty.id}", safe='')
 
     return (
         f"https://t.me/share/url?url={encoded_share_target_url}"
@@ -156,10 +156,10 @@ def get_share_link(realty, lang) -> str:
     )
 
 def get_share_link_to_bot(lang) -> str:
-    message_text = get_text('get_text_info_for_share_to_bot', lang).replace('{bot_name}', settings.BotSettings.BOT_NAME)
+    message_text = get_text('get_text_info_for_share_to_bot', lang).replace('{bot_name}', settings.bot.BOT_NAME)
 
     encoded_share_message_text = quote(message_text)
-    encoded_share_target_url = quote(f"https://t.me/{settings.BotSettings.BOT_NAME}", safe='')
+    encoded_share_target_url = quote(f"https://t.me/{settings.bot.BOT_NAME}", safe='')
 
     return (
         f"https://t.me/share/url?url={encoded_share_target_url}"

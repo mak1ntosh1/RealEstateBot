@@ -18,7 +18,7 @@ async def add_ad(call: CallbackQuery):
     user = Users.get(Users.user_id == call.from_user.id)
     await call.message.delete()
     await call.message.answer_photo(
-        photo=settings.ImageIDs.ADD_AD,
+        photo=settings.images.ADD_AD,
         caption=get_text(key='choice_city', lang=user.language),
         reply_markup=get_choice_city_kb(cities, user.language)
     )

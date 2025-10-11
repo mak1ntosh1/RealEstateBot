@@ -6,11 +6,11 @@ from peewee import (
 from config import settings
 
 db = PostgresqlDatabase(
-    database=settings.DatabaseSettings.DB_NAME,
-    user=settings.DatabaseSettings.DB_USER,
-    password=settings.DatabaseSettings.DB_PASSWORD,
-    host=settings.DatabaseSettings.DB_HOST,
-    port=settings.DatabaseSettings.DB_PORT,
+    database=settings.database.DB_NAME,
+    user=settings.database.DB_USER,
+    password=settings.database.DB_PASSWORD,
+    host=settings.database.DB_HOST,
+    port=settings.database.DB_PORT,
 )
 
 

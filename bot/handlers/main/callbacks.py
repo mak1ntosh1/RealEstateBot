@@ -15,7 +15,7 @@ router = Router()
 async def choice_lang(call: CallbackQuery):
     await call.message.delete()
     await call.message.answer_photo(
-        photo=settings.ImageIDs.CHANGE_LANG,
+        photo=settings.images.CHANGE_LANG,
         caption='Please select your language',
         reply_markup=get_choice_lang_kb()
     )
@@ -44,12 +44,12 @@ async def choice_lang(call: CallbackQuery):
     )
 
     await call.message.answer_photo(
-        photo=settings.ImageIDs.TUTORIAL,
+        photo=settings.images.TUTORIAL,
         caption=get_text(key='watch_tutorial', lang=lang),
     )
 
     await call.message.answer_photo(
-        photo=settings.ImageIDs.MAIN_MENU,
+        photo=settings.images.MAIN_MENU,
         caption=get_text(key='main_menu', lang=lang),
         reply_markup=get_main_menu_kb(lang)
     )
@@ -69,7 +69,7 @@ async def cancel_to_menu(call: CallbackQuery, state: FSMContext):
     user = Users.get_or_none(Users.user_id == call.from_user.id)
     await call.message.delete()
     await call.message.answer_photo(
-        photo=settings.ImageIDs.MAIN_MENU,
+        photo=settings.images.MAIN_MENU,
         caption=get_text(key='main_menu', lang=user.language),
         reply_markup=get_main_menu_kb(user.language)
     )
@@ -83,7 +83,7 @@ async def my_ads(call: CallbackQuery):
 
     await call.message.delete()
     await call.message.answer_photo(
-        photo=settings.ImageIDs.MY_ADS,
+        photo=settings.images.MY_ADS,
         caption=get_text('your_ads', lang),
         reply_markup=get_my_ads_kb(current_page, lang, user)
     )

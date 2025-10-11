@@ -16,7 +16,7 @@ OLD_MAIN_MENU = [
 async def main_menu(message: Message):
     user = Users.get_or_none(Users.user_id == message.from_user.id)
     await message.answer_photo(
-        photo=settings.ImageIDs.MAIN_MENU,
+        photo=settings.images.MAIN_MENU,
         caption=get_text(key='main_menu', lang=user.language),
         reply_markup=get_main_menu_kb(user.language)
     )
