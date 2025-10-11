@@ -1,10 +1,10 @@
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.databases.database import Favorites, City_Districts, Apartment_Parameters
-from bot.utils.utils import get_text
+from bot.databases.database import City_Districts, Apartment_Parameters
 from bot.states.states import SearchSettings
-from config import CONTACT_MODE, PARAMS_SEARCH
+from bot.utils.utils import get_text
+from config import settings
 
 
 def get_ad_type_kb(selected_type=None, lang: str = 'ru'):
@@ -40,7 +40,7 @@ def get_apartment_params_kb(selected_params=None, lang: str = 'ru'):
     if selected_params is None:
         selected_params = []
     ikb = InlineKeyboardBuilder()
-    for param in PARAMS_SEARCH:
+    for param in settings.SearchConstants.PARAMS_SEARCH:
         status = ''  if ('all_params' in selected_params or param not in selected_params) and param != 'all_params' else  "✅"
         text = f'{status} {get_text(param, lang)}'
         ikb.row(InlineKeyboardButton(text=text, callback_data=f"param_{param}"))
@@ -181,7 +181,7 @@ def get_search_settings_kb(user, lang):
     )
     selected_params = [
         param.title_parameter for param in active_params
-        if param.title_parameter in PARAMS_SEARCH
+        if param.title_parameter in settings.SearchConstants.PARAMS_SEARCH
     ]
 
     all_districts = [district.district for district in City_Districts.select().distinct(City_Districts.district)]

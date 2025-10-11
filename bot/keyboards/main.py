@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
 from bot.keyboards.utils import create_paginated_keyboard, format_my_ads_for_button
 from bot.utils.utils import get_text, get_share_link_to_bot
-from config import SUPPORT_URL, COUNT_IN_PAGE
+from config import settings
 
 
 def get_choice_lang_kb(ad_id=None):
@@ -37,7 +37,7 @@ def get_main_menu_kb(lang):
         width=1
     )
     ikb.row(
-        InlineKeyboardButton(text=get_text(key='support', lang=lang), url=SUPPORT_URL),
+        InlineKeyboardButton(text=get_text(key='support', lang=lang), url=settings.BotSettings.SUPPORT_URL),
         InlineKeyboardButton(text=get_text(key='share', lang=lang), url=share_link),
     )
     return ikb.as_markup()
@@ -61,7 +61,7 @@ def get_choice_city_kb(cities, lang):
 def get_my_ads_kb(current_page, lang, user):
     total_ads_count = user.ads.count()
     # total_pages должна быть не меньше 1, если есть хоть 1 объявление
-    total_pages = (total_ads_count + COUNT_IN_PAGE - 1) // COUNT_IN_PAGE if total_ads_count > 0 else 1
+    total_pages = (total_ads_count + settings.BotSettings.COUNT_IN_PAGE - 1) // settings.BotSettings.COUNT_IN_PAGE if total_ads_count > 0 else 1
 
     # 1. Если элементов нет, страница должна быть 1 (хотя total_pages = 1)
     if total_ads_count == 0:
@@ -74,12 +74,12 @@ def get_my_ads_kb(current_page, lang, user):
         current_page = total_pages
 
     # Если current_page = 1, OFFSET = 0. OFFSET всегда >= 0.
-    offset = (current_page - 1) * COUNT_IN_PAGE
+    offset = (current_page - 1) * settings.BotSettings.COUNT_IN_PAGE
 
     ads_on_page = (
         user.ads.model.select().where(user.ads.model.user == user).order_by(
             user.ads.model.id.desc()
-        ).limit(COUNT_IN_PAGE).offset(offset))
+        ).limit(settings.BotSettings.COUNT_IN_PAGE).offset(offset))
 
     ikb = create_paginated_keyboard(
         items_on_page=list(ads_on_page),
@@ -111,16 +111,16 @@ def get_my_ad_kb(realty_id, photo_number, lang):
 async def get_realty_cards_favorites_kb(favorites, page, call, lang):
     ikb = InlineKeyboardBuilder()
 
-    if len(favorites) > COUNT_IN_PAGE:
-        total_pages = math.ceil(len(favorites) / COUNT_IN_PAGE)
+    if len(favorites) > settings.BotSettings.COUNT_IN_PAGE:
+        total_pages = math.ceil(len(favorites) / settings.BotSettings.COUNT_IN_PAGE)
 
         if page <= 0 or (total_pages < page):
             await call.answer('Дальше страниц нет!')
             return None
         else:
-            start_idx = (page - 1) * COUNT_IN_PAGE
+            start_idx = (page - 1) * settings.BotSettings.COUNT_IN_PAGE
 
-            end_idx = min(page * COUNT_IN_PAGE, len(favorites))
+            end_idx = min(page * settings.BotSettings.COUNT_IN_PAGE, len(favorites))
             count = start_idx
             for favorite in favorites[start_idx:end_idx]:
                 ad = favorite.realty

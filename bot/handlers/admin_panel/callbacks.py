@@ -9,7 +9,6 @@ from bot.handlers.commands.main import admin_panel
 from bot.keyboards.admin_panel import *
 from bot.utils.utils import get_text_info_ad_incomplete, get_text_info_ad_full
 from bot.states.states import *
-from config import ADMIN_PANEL
 
 router = Router()
 
@@ -61,7 +60,7 @@ async def all_ads(call: CallbackQuery):
     except Exception as e:
         await call.message.delete()
         await call.message.answer_photo(
-            photo=ADMIN_PANEL,
+            photo=settings.ImageIDs.ADMIN_PANEL,
             caption=text,
             reply_markup=keyboard
         )

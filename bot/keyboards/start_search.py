@@ -1,12 +1,8 @@
-from urllib.parse import quote
-
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.databases.database import Favorites, Users
 from bot.utils.utils import get_text, get_share_link
-from config import CONTACT_MODE, BOT_NAME
-
 
 def get_realty_card_kb(realty, user_id: int, page, lang: str = 'ru', this_last_one=0):
     ikb = InlineKeyboardBuilder()

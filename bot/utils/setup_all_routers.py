@@ -4,13 +4,13 @@ from pathlib import Path
 
 from aiogram import Router
 
-from config import HANDLERS_DIR
+from config import settings
 
 
 def setup_all_routers(dispatcher):
-    print(f"Поиск роутеров в папке: {HANDLERS_DIR}")
+    print(f"Поиск роутеров в папке: {settings.PathSettings.HANDLERS_DIR}")
 
-    for file_path in HANDLERS_DIR.rglob("*.py"):
+    for file_path in settings.PathSettings.HANDLERS_DIR.rglob("*.py"):
         if file_path.name == "__init__.py":
             continue
 

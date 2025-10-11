@@ -1,13 +1,13 @@
 from contextlib import suppress
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery
 
 from bot.databases.database import Users, Realty, Favorites
 from bot.handlers.start_search.callbacks import card_in_detail
 from bot.keyboards.main import *
 from bot.utils.utils import get_text
-from config import FAVORITES_ADS
+from config import settings
 
 router = Router()
 
@@ -27,7 +27,7 @@ async def favorites_(call: CallbackQuery):
         with suppress(Exception):
             await call.message.delete()
         await call.message.answer_photo(
-            photo=FAVORITES_ADS,
+            photo=settings.ImageIDs.FAVORITES_ADS,
             caption=get_text('your_list_favorites', lang),
             reply_markup=keyboard
         )

@@ -6,7 +6,7 @@ from peewee import fn
 
 from bot.databases.database import Realty
 from bot.utils.utils import get_text
-from config import COUNT_IN_PAGE
+from config import settings
 
 
 def get_admin_panel_kb():
@@ -34,7 +34,7 @@ async def get_list_all_ads_kb(page, call):
     total_ads_count = Realty.select(fn.COUNT(Realty.id)).scalar()
 
     # 2. Расчет общего количества страниц
-    total_pages = math.ceil(total_ads_count / COUNT_IN_PAGE) if total_ads_count > 0 else 1
+    total_pages = math.ceil(total_ads_count / settings.BotSettings.COUNT_IN_PAGE) if total_ads_count > 0 else 1
 
     # 3. Корректировка страницы для предотвращения отрицательного OFFSET
     if page < 1:
@@ -45,18 +45,18 @@ async def get_list_all_ads_kb(page, call):
         return None
 
     # 4. Расчет OFFSET
-    start_idx = (page - 1) * COUNT_IN_PAGE
+    start_idx = (page - 1) * settings.BotSettings.COUNT_IN_PAGE
 
     # 5. Получаем ТОЛЬКО нужные объявления (LIMIT и OFFSET)
     ads_on_page = (
         Realty.select()
         .order_by(Realty.consent_admin.asc(nulls='FIRST'))
-        .limit(COUNT_IN_PAGE)
+        .limit(settings.BotSettings.COUNT_IN_PAGE)
         .offset(start_idx)
     )
     ads_list = list(ads_on_page)
 
-    if total_ads_count > COUNT_IN_PAGE:
+    if total_ads_count > settings.BotSettings.COUNT_IN_PAGE:
 
         count = start_idx
         for ad in ads_list:

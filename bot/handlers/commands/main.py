@@ -1,6 +1,6 @@
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, FSInputFile
+from aiogram.types import Message
 
 from bot.databases.database import Users, City_Districts, Realty
 from bot.decorators.handle_only_admin import handle_only_admin
@@ -8,7 +8,7 @@ from bot.keyboards.admin_panel import get_admin_panel_kb
 from bot.keyboards.main import *
 from bot.keyboards.start_search import get_realty_card_kb
 from bot.utils.utils import get_text, get_text_info_ad_incomplete
-from config import ADMIN_CHAT_ID, MAIN_MENU, ADMIN_PANEL
+from config import settings
 from misc import bot
 
 router = Router()
@@ -31,7 +31,7 @@ async def start_message(message: Message):
         )
 
         await message.answer_photo(
-            photo=MAIN_MENU,
+            photo=settings.ImageIDs.MAIN_MENU,
             caption=get_text(key='main_menu', lang=user.language),
             reply_markup=get_main_menu_kb(user.language)
         )
@@ -53,27 +53,26 @@ async def start_message(message: Message):
 
 
 @router.message(Command("add_cities"))
+@handle_only_admin
 async def add_cities(message: Message):
-    user_channel_status = await bot.get_chat_member(chat_id=ADMIN_CHAT_ID, user_id=message.from_user.id)
-    if user_channel_status.status != 'left':
-        params = message.text.split('\n')[1:]
-        if params:
-            text = ''
-            for city in params:
-                city_name = city.split(':')[0]
-                district = city.split(':')[-1]
-                if City_Districts.get_or_none(City_Districts.district == district):
-                    text += f'♨ Район <code>{district}</code> уже есть в базе данных\n'
-                else:
-                    City_Districts.create(
-                        city_name=city_name.strip(),
-                        district=district.strip(),
-                    )
-                    text += f'✅ Район <code>{district}</code> успешно добавлен\n'
+    params = message.text.split('\n')[1:]
+    if params:
+        text = ''
+        for city in params:
+            city_name = city.split(':')[0]
+            district = city.split(':')[-1]
+            if City_Districts.get_or_none(City_Districts.district == district):
+                text += f'♨ Район <code>{district}</code> уже есть в базе данных\n'
+            else:
+                City_Districts.create(
+                    city_name=city_name.strip(),
+                    district=district.strip(),
+                )
+                text += f'✅ Район <code>{district}</code> успешно добавлен\n'
 
-            await message.answer(text)
-        else:
-            text = '''
+        await message.answer(text)
+    else:
+        text = '''
 ♨ Неверное число параметров!
 /add_cities
 {Город}:{Район}
@@ -87,7 +86,7 @@ async def add_cities(message: Message):
 Санкт-Петербург:Адмиралтейский
 Санкт-Петербург:Кировский
 '''
-            await message.answer(text)
+        await message.answer(text)
 
 
 
@@ -101,7 +100,7 @@ async def get_id(message: Message):
 @router.message(Command("admin"))
 @handle_only_admin
 async def admin_panel(message: Message, user_id = None):
-    user_channel_status = await bot.get_chat_member(chat_id=ADMIN_CHAT_ID, user_id=user_id if user_id else message.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=settings.BotSettings.ADMIN_CHAT_ID, user_id=user_id if user_id else message.from_user.id)
     if user_channel_status.status != 'left':
         count_users = Users.select().count()
         active_adds = Realty.select().where(Realty.consent_admin == True).count()
@@ -121,7 +120,7 @@ async def admin_panel(message: Message, user_id = None):
 '''
 
         await message.answer_photo(
-            photo=FSInputFile(ADMIN_PANEL),
+            photo=settings.ImageIDs.ADMIN_PANEL,
             caption=text,
             reply_markup=get_admin_panel_kb()
         )
@@ -129,7 +128,7 @@ async def admin_panel(message: Message, user_id = None):
 
 @router.message(Command("rm_me"))
 async def remove_me(message: Message):
-    user_channel_status = await bot.get_chat_member(chat_id=ADMIN_CHAT_ID, user_id=message.from_user.id)
+    user_channel_status = await bot.get_chat_member(chat_id=settings.BotSettings.ADMIN_CHAT_ID, user_id=message.from_user.id)
     if user_channel_status.status != 'left':
         user = Users.get_or_none(Users.user_id == message.from_user.id)
         if user:

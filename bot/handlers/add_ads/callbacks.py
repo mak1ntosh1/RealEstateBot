@@ -1,13 +1,13 @@
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery
 
 from bot.databases.database import Users, City_Districts
 from bot.keyboards.add_ad import get_ad_type_kb
 from bot.keyboards.main import *
-from bot.utils.utils import get_text
 from bot.states.states import *
-from config import  ADD_AD
+from bot.utils.utils import get_text
+from config import settings
 
 router = Router()
 
@@ -18,7 +18,7 @@ async def add_ad(call: CallbackQuery):
     user = Users.get(Users.user_id == call.from_user.id)
     await call.message.delete()
     await call.message.answer_photo(
-        photo=ADD_AD,
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text(key='choice_city', lang=user.language),
         reply_markup=get_choice_city_kb(cities, user.language)
     )

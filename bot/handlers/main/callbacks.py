@@ -6,7 +6,7 @@ from bot.databases.database import Users, Realty
 from bot.keyboards.main import *
 from bot.keyboards.start_search import get_realty_card_kb
 from bot.utils.utils import get_text, get_text_info_ad_full, get_text_info_ad_incomplete
-from config import TUTORIAL, MAIN_MENU, CHANGE_LANG, MY_ADS
+from config import settings
 
 router = Router()
 
@@ -15,7 +15,7 @@ router = Router()
 async def choice_lang(call: CallbackQuery):
     await call.message.delete()
     await call.message.answer_photo(
-        photo=FSInputFile(CHANGE_LANG),
+        photo=settings.ImageIDs.CHANGE_LANG,
         caption='Please select your language',
         reply_markup=get_choice_lang_kb()
     )
@@ -44,12 +44,12 @@ async def choice_lang(call: CallbackQuery):
     )
 
     await call.message.answer_photo(
-        photo=FSInputFile(TUTORIAL),
+        photo=settings.ImageIDs.TUTORIAL,
         caption=get_text(key='watch_tutorial', lang=lang),
     )
 
     await call.message.answer_photo(
-        photo=FSInputFile(MAIN_MENU),
+        photo=settings.ImageIDs.MAIN_MENU,
         caption=get_text(key='main_menu', lang=lang),
         reply_markup=get_main_menu_kb(lang)
     )
@@ -69,7 +69,7 @@ async def cancel_to_menu(call: CallbackQuery, state: FSMContext):
     user = Users.get_or_none(Users.user_id == call.from_user.id)
     await call.message.delete()
     await call.message.answer_photo(
-        photo=MAIN_MENU,
+        photo=settings.ImageIDs.MAIN_MENU,
         caption=get_text(key='main_menu', lang=user.language),
         reply_markup=get_main_menu_kb(user.language)
     )
@@ -83,7 +83,7 @@ async def my_ads(call: CallbackQuery):
 
     await call.message.delete()
     await call.message.answer_photo(
-        photo=MY_ADS,
+        photo=settings.ImageIDs.MY_ADS,
         caption=get_text('your_ads', lang),
         reply_markup=get_my_ads_kb(current_page, lang, user)
     )

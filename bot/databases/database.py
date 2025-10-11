@@ -2,14 +2,15 @@ from peewee import (
     PostgresqlDatabase, Model, BooleanField,
     IntegerField, CharField, ForeignKeyField, AutoField, BigIntegerField
 )
-from config import *
+
+from config import settings
 
 db = PostgresqlDatabase(
-    database=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST,
-    port=DB_PORT,
+    database=settings.DatabaseSettings.DB_NAME,
+    user=settings.DatabaseSettings.DB_USER,
+    password=settings.DatabaseSettings.DB_PASSWORD,
+    host=settings.DatabaseSettings.DB_HOST,
+    port=settings.DatabaseSettings.DB_PORT,
 )
 
 

@@ -11,7 +11,6 @@ from bot.keyboards.add_ad import *
 from bot.utils.utils import get_text_info_ad_full, get_text_info_ad_incomplete
 
 from bot.states.states import *
-from config import DIR_PHOTO_ESTATES
 from misc import bot
 
 router = Router()
@@ -202,7 +201,7 @@ async def price_entered(msg: Message, state: FSMContext, message_text=None, user
         except Exception as ex:
             print(ex)
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("choose_district", lang),
         reply_markup=get_districts_kb(lang, districts)  # Возвращает к вводу стоимости
     )
@@ -257,7 +256,8 @@ async def street_entered(msg: Message, state: FSMContext):
     except Exception as ex:
         print(ex)
 
-    await msg.answer(
+    await msg.answer_photo(
+        photo=settings.ImageIDs.AddAd,
         caption=get_text("enter_square", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_street_entered')  # Возвращает к вводу улицы
     )
@@ -307,7 +307,7 @@ async def square_entered(msg: Message, state: FSMContext, message_text=None, use
             print(ex)
 
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("enter_floor", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_street_entered')  # Возвращает к вводу улицы
     )
@@ -348,7 +348,7 @@ async def floor_entered(msg: Message, state: FSMContext, message_text=None, user
             print(ex)
 
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("enter_floor_total", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_floor_entered')  # Возвращает к вводу этажа
     )
@@ -388,7 +388,7 @@ async def floor_in_house_entered(msg: Message, state: FSMContext, message_text=N
             print(ex)
 
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("enter_description", lang),
         reply_markup=get_skip_description_kb(lang)
     )
@@ -445,7 +445,7 @@ async def description_entered(msg: Message, state: FSMContext):
         print(ex)
 
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("attach_photos", lang),
         reply_markup=get_back_to_description_entered_kb(lang)  # Возвращает к вводу описания
     )
@@ -504,7 +504,7 @@ async def photos_received(message: Message, album: list[Message] = None, state: 
         for msg in photos:
             photo = msg.photo[-1]  # Самое качественное фото
             unique_filename = f"{uuid.uuid4()}.jpg"
-            file_path = os.path.join(DIR_PHOTO_ESTATES, unique_filename)
+            file_path = settings.PathSettings.DIR_PHOTO_ESTATES
 
             await bot.download(photo.file_id, destination=file_path)
 
@@ -529,7 +529,7 @@ async def skip_description(call: CallbackQuery, state: FSMContext):
 
     await call.message.delete()
     await call.message.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("enter_name", lang)
     )
 
@@ -553,7 +553,7 @@ async def name_entered(msg: Message, state: FSMContext):
         print(ex)
 
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("enter_phone", lang)
     )
 
@@ -573,7 +573,7 @@ async def contact_entered(msg: Message, state: FSMContext):
         print(ex)
 
     await msg.answer_photo(
-        photo=FSInputFile(ADD_AD),
+        photo=settings.ImageIDs.ADD_AD,
         caption=get_text("enter_agency", lang),
         reply_markup=get_agency_kb(lang)
     )
@@ -637,13 +637,13 @@ async def finish_add_ad(message: Message, state: FSMContext, user_id):
     if photo:
         await bot.send_photo(
             photo=FSInputFile(photo.photo_path),
-            chat_id=ADMIN_CHAT_ID,
+            chat_id=settings.BotSettings.ADMIN_CHAT_ID,
             caption=text,
             reply_markup=get_consent_admin_kb(realty.id, realty.consent_admin, photo_number + 1)
         )
     else:
         await bot.send_message(
-            ADMIN_CHAT_ID, text,
+            settings.BotSettings.ADMIN_CHAT_ID, text,
             reply_markup=get_consent_admin_kb(realty.id, realty.consent_admin, photo_number + 1)
         )
 

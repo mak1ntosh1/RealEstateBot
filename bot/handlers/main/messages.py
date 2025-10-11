@@ -1,10 +1,10 @@
 from aiogram import Router, F
-from aiogram.types import Message, FSInputFile
+from aiogram.types import Message
 
 from bot.databases.database import Users
 from bot.keyboards.main import get_main_menu_kb
 from bot.utils.utils import get_text
-from config import MAIN_MENU
+from config import settings
 
 router = Router()
 
@@ -16,7 +16,7 @@ OLD_MAIN_MENU = [
 async def main_menu(message: Message):
     user = Users.get_or_none(Users.user_id == message.from_user.id)
     await message.answer_photo(
-        photo=MAIN_MENU,
+        photo=settings.ImageIDs.MAIN_MENU,
         caption=get_text(key='main_menu', lang=user.language),
         reply_markup=get_main_menu_kb(user.language)
     )

@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 
-from config import TOKEN
+from config import settings
 
-bot = Bot(TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
+bot = Bot(settings.BotSettings.TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
 dispatcher = Dispatcher()
