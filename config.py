@@ -23,7 +23,7 @@ class BotSettings(BaseSettings):
 
     TOKEN: str = Field(..., description="Токен Telegram-бота", min_length=1)
     NAME: str = Field('rea1_estate_bot', description="Имя бота")
-    ADMIN_CHAT_ID: int = Field(..., description="ID администратора для уведомлений")
+    ADMIN_CHAT_ID: int = Field(-4728916434, description="ID администратора для уведомлений")
     SUPPORT_URL: str = Field('https://t.me/BotFather', description="URL поддержки")
 
     # Константы пагинации
