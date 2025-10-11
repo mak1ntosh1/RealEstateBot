@@ -6,15 +6,17 @@ from bot.databases.database import Users, Realty
 from bot.keyboards.main import *
 from bot.keyboards.start_search import get_realty_card_kb
 from bot.utils.utils import get_text, get_text_info_ad_full, get_text_info_ad_incomplete
-from config import TUTORIAL
+from config import TUTORIAL, MAIN_MENU, CHANGE_LANG, MY_ADS
 
 router = Router()
 
 
 @router.callback_query(F.data == 'change_lang')
 async def choice_lang(call: CallbackQuery):
-    await call.message.edit_text(
-        'Please select your language',
+    await call.message.delete()
+    await call.message.answer_photo(
+        photo=FSInputFile(CHANGE_LANG),
+        caption='Please select your language',
         reply_markup=get_choice_lang_kb()
     )
 
@@ -46,8 +48,9 @@ async def choice_lang(call: CallbackQuery):
         caption=get_text(key='watch_tutorial', lang=lang),
     )
 
-    await call.message.answer(
-        text=get_text(key='main_menu', lang=lang),
+    await call.message.answer_photo(
+        photo=FSInputFile(MAIN_MENU),
+        caption=get_text(key='main_menu', lang=lang),
         reply_markup=get_main_menu_kb(lang)
     )
 
@@ -65,34 +68,31 @@ async def cancel_to_menu(call: CallbackQuery, state: FSMContext):
 
     user = Users.get_or_none(Users.user_id == call.from_user.id)
     await call.message.delete()
-    await call.message.answer(
-        text=get_text(key='main_menu', lang=user.language),
+    await call.message.answer_photo(
+        photo=MAIN_MENU,
+        caption=get_text(key='main_menu', lang=user.language),
         reply_markup=get_main_menu_kb(user.language)
     )
 
 
-@router.callback_query(F.data == 'my_ads')
+@router.callback_query(F.data.startswith('my_ads'))
 async def my_ads(call: CallbackQuery):
+    current_page = int(call.data.split('_')[-1]) if len(call.data.split('_')) > 2 else 1
     user = Users.get(Users.user_id == call.from_user.id)
     lang = user.language
-    ads = user.ads
 
-    try:
-        await call.message.edit_text(
-            get_text('your_ads', lang),
-            reply_markup=get_my_ads_kb(ads, lang)
-        )
-    except Exception as e:
-        await call.message.delete()
-        await call.message.answer(
-            get_text('your_ads', lang),
-            reply_markup=get_my_ads_kb(ads, lang)
-        )
+    await call.message.delete()
+    await call.message.answer_photo(
+        photo=MY_ADS,
+        caption=get_text('your_ads', lang),
+        reply_markup=get_my_ads_kb(current_page, lang, user)
+    )
 
 
 @router.callback_query(F.data.startswith('view_ad_'))
 async def view_ad(call: CallbackQuery):
-    relaty_id = call.data.split('_', 2)[-1]
+    print(call.data)
+    relaty_id = call.data.split('_', 3)[-2]
     realty = Realty.get(Realty.id == relaty_id)
 
     user = Users.get(Users.user_id == call.from_user.id)

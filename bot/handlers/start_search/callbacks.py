@@ -3,12 +3,13 @@ from contextlib import suppress
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InputMediaPhoto, FSInputFile
+from peewee import fn
 
 from bot.databases.database import Users, Realty, Favorites
 from bot.keyboards.main import get_realty_cards_favorites_kb
 from bot.keyboards.start_search import get_realty_card_kb, get_realty_card2_kb
 from bot.utils.utils import get_text, search_realty, get_text_info_ad_incomplete, get_text_info_ad_full
-from config import COUNT_CARDS_IN_BATCH, BOT_NAME
+from config import COUNT_CARDS_IN_BATCH, SEARCH
 
 router = Router()
 
@@ -19,75 +20,132 @@ async def start_search(call: CallbackQuery, state: FSMContext):
     without_filters = None
     if len(data) == 3:
         without_filters = data[-1]
+
     user = Users.get(Users.user_id == call.from_user.id)
     lang = user.language
 
-    search_results = await search_realty(user, without_filters)
+    # Получение QuerySet и применение LIMIT/OFFSET
+    search_query = await search_realty(user, without_filters)
 
-    if search_results:
-        result_text = f"{get_text('search_started', lang)}\n\n" \
-                      f"{get_text('search_results_found', lang)} {len(search_results)}\n"
+    # Задаем LIMIT для первой страницы: на 1 больше, чтобы проверить наличие следующей
+    limit = COUNT_CARDS_IN_BATCH + 1
+    offset = 0  # Первая страница всегда OFFSET=0
 
-        for realty in search_results[:COUNT_CARDS_IN_BATCH]:
-            text = get_text_info_ad_incomplete(realty, lang)
+    # Применяем лимит и загружаем данные (выполняем SQL-запрос)
+    search_query = search_query.limit(limit).offset(offset)
+    search_results = list(search_query)
 
-            await call.message.answer(text, reply_markup=get_realty_card_kb(
-                realty, user.user_id, page=1, lang=lang
-            ))
-        if len(search_results) >= COUNT_CARDS_IN_BATCH:
-            realty = search_results[COUNT_CARDS_IN_BATCH]
-            text = get_text_info_ad_incomplete(realty, lang)
+    # Подготовка данных для отображения
+    realty_to_show = search_results[:COUNT_CARDS_IN_BATCH]
 
-            await call.message.answer(text, reply_markup=get_realty_card_kb(
-                realty, user.user_id, page=1, lang=lang, this_last_one=1
-            ))
+    # Проверяем, есть ли следующая страница (если результатов больше, чем лимит пачки)
+    has_more = len(search_results) > COUNT_CARDS_IN_BATCH
+
+    # Выполняем быстрый запрос COUNT для получения общего числа
+    total_results_count = search_query.select(fn.COUNT(Realty.id)).scalar()
+
+    result_text = f"{get_text('search_started', lang)}\n\n"
+    if realty_to_show:
+        result_text += f"{get_text('search_results_found', lang)} <code>{total_results_count}</code>"
     else:
-        result_text = f"{get_text('search_started', lang)}\n\n" \
-                      f"{get_text('no_results_found', lang)}"
+        result_text += f"{get_text('no_results_found', lang)}"
 
-    await call.message.edit_text(result_text)
+    await call.message.answer_photo(
+        photo=SEARCH,
+        caption=result_text
+    )
+
+    if realty_to_show:
+        for idx, realty_item in enumerate(realty_to_show):
+            text = get_text_info_ad_incomplete(realty_item, lang)
+
+            # Определяем, является ли объявление последним (если есть следующая страница)
+            is_last_one = has_more and idx == len(realty_to_show) - 1
+
+            await call.message.answer(
+                text,
+                reply_markup=get_realty_card_kb(
+                    realty_item,
+                    user.user_id,
+                    page=1,
+                    lang=lang,
+                    this_last_one=1 if is_last_one else 0
+                )
+            )
     await state.clear()
 
 
 @router.callback_query(F.data.startswith("more_"))
 async def more(call: CallbackQuery):
-    realty_id = call.data.split('_', 2)[-2]
-    page = int(call.data.split('_', 2)[-1])
+    # more_<realty_id>_<page>
+    try:
+        data_parts = call.data.split('_')
+        realty_id = data_parts[-2]
+        page = int(data_parts[-1])
+    except (IndexError, ValueError):
+        # Обработка некорректного колбэка
+        await call.answer("Ошибка данных.", show_alert=True)
+        return
+
+    # Загрузка realty и user (необходимо для языка и параметров поиска)
+    realty_id = int(realty_id)
     realty = Realty.get(Realty.id == realty_id)
     user = realty.user
     lang = user.language
 
+    # Определение LIMIT и OFFSET для пагинации
+    # LIMIT = Загружаем на 1 объявление больше, чтобы понять, есть ли следующая страница.
+    limit = COUNT_CARDS_IN_BATCH + 1
+    offset = (page - 1) * COUNT_CARDS_IN_BATCH
+
+    # Вызов оптимизированного поиска
+    search_query = await search_realty(user)
+
+    # Применяем LIMIT/OFFSET к QuerySet
+    search_query = search_query.limit(limit).offset(offset)
+
+    # Загружаем данные из БД (выполняем запрос)
+    search_results = list(search_query)
+
+    # Обновление первого сообщения (удаление старой карточки)
     await call.message.edit_reply_markup(
         reply_markup=get_realty_card_kb(realty, user.user_id, page=page, lang=lang)
     )
 
-    search_results = await search_realty(user)
-
-    if search_results:
-        start_idx = (page - 1) * COUNT_CARDS_IN_BATCH
-        end_idx = min(page * COUNT_CARDS_IN_BATCH, len(search_results))
-
+    realty_to_show = search_results[:COUNT_CARDS_IN_BATCH]
+    print(realty_to_show)
+    has_more = len(search_results) > COUNT_CARDS_IN_BATCH
+    print(has_more)
+    if realty_to_show:
         result_text = f"{get_text('search_started', lang)}\n\n" \
-                      f"{get_text('search_results_found', lang)} {len(search_results)}\n"
+                      f"{get_text('search_results_found', lang)} (Часть {page})"
 
-        for realty in search_results[start_idx:end_idx]:
-            text = get_text_info_ad_incomplete(realty, lang)
+        await call.message.edit_text(result_text)
 
-            await call.message.answer(text, reply_markup=get_realty_card_kb(
-                realty, user.user_id, page=page, lang=lang
-            ))
-        if len(search_results) >= end_idx:
-            realty = search_results[end_idx]
-            text = get_text_info_ad_incomplete(realty, lang)
+        # Отправка объявлений
+        for idx, realty_item in enumerate(realty_to_show):
+            text = get_text_info_ad_incomplete(realty_item, lang)
 
-            await call.message.answer(text, reply_markup=get_realty_card_kb(
-                realty, user.user_id, page=page, lang=lang, this_last_one=1,
-            ))
+            # Определяем, является ли объявление последним в пачке
+            is_last_one = has_more and idx == len(realty_to_show) - 1
+
+            # Отправляем карточку
+            await call.message.answer(
+                text,
+                reply_markup=get_realty_card_kb(
+                    realty_item,
+                    user.user_id,
+                    page=page,
+                    lang=lang,
+                    this_last_one=1 if is_last_one else 0
+                )
+            )
+
     else:
+        # Результатов нет
         result_text = f"{get_text('search_started', lang)}\n\n" \
                       f"{get_text('no_results_found', lang)}"
-
-    await call.message.edit_text(result_text)
+        await call.message.edit_text(result_text)
 
 
 
@@ -146,12 +204,21 @@ async def card_in_detail(call: CallbackQuery, new_call_data=None, is_favorites=F
             )
         )
     else:
-        await call.message.edit_text(
-            text=get_text_info_ad_full(realty, lang),
-            reply_markup=get_realty_card2_kb(
-                realty, photo_number + 1, user.user_id, page=page, lang=lang, this_last_one=this_last_one, is_favorites=is_favorites
+        try:
+            await call.message.edit_caption(
+                caption=get_text_info_ad_full(realty, lang),
+                reply_markup=get_realty_card2_kb(
+                    realty, photo_number + 1, user.user_id, page=page, lang=lang, this_last_one=this_last_one, is_favorites=is_favorites
+                )
             )
-        )
+        except Exception as e:
+            await call.message.edit_text(
+                text=get_text_info_ad_full(realty, lang),
+                reply_markup=get_realty_card2_kb(
+                    realty, photo_number + 1, user.user_id, page=page, lang=lang, this_last_one=this_last_one,
+                    is_favorites=is_favorites
+                )
+            )
         await call.answer(get_text('no_photos', lang))
 
 

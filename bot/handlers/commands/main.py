@@ -1,13 +1,14 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 
 from bot.databases.database import Users, City_Districts, Realty
+from bot.decorators.handle_only_admin import handle_only_admin
 from bot.keyboards.admin_panel import get_admin_panel_kb
 from bot.keyboards.main import *
 from bot.keyboards.start_search import get_realty_card_kb
 from bot.utils.utils import get_text, get_text_info_ad_incomplete
-from config import ADMIN_CHAT_ID
+from config import ADMIN_CHAT_ID, MAIN_MENU, ADMIN_PANEL
 from misc import bot
 
 router = Router()
@@ -29,8 +30,9 @@ async def start_message(message: Message):
             disable_web_page_preview=True
         )
 
-        await message.answer(
-            text=get_text(key='main_menu', lang=user.language),
+        await message.answer_photo(
+            photo=MAIN_MENU,
+            caption=get_text(key='main_menu', lang=user.language),
             reply_markup=get_main_menu_kb(user.language)
         )
 
@@ -91,13 +93,13 @@ async def add_cities(message: Message):
 
 @router.message(Command("id"))
 async def get_id(message: Message):
-
     await message.answer(
         text=str(message.chat.id),
     )
 
 
 @router.message(Command("admin"))
+@handle_only_admin
 async def admin_panel(message: Message, user_id = None):
     user_channel_status = await bot.get_chat_member(chat_id=ADMIN_CHAT_ID, user_id=user_id if user_id else message.from_user.id)
     if user_channel_status.status != 'left':
@@ -118,8 +120,9 @@ async def admin_panel(message: Message, user_id = None):
 🔘 На модерации: <i>{moderation_adds}</i>
 '''
 
-        await message.answer(
-            text=text,
+        await message.answer_photo(
+            photo=FSInputFile(ADMIN_PANEL),
+            caption=text,
             reply_markup=get_admin_panel_kb()
         )
 
@@ -137,3 +140,31 @@ async def remove_me(message: Message):
 
         await message.answer(text)
 
+
+@router.message(F.photo | F.video | F.document | F.animation | F.audio | F.voice | F.sticker)
+@handle_only_admin
+async def get_file_id_for_any_media(message: Message):
+    """
+    Получает file_id для любого отправленного медиафайла (фото, видео, документ, аудио, анимация, голосовое сообщение, стикер).
+    Отвечает на каждое медиа в группе как на отдельное сообщение.
+    """
+    file_id = None
+
+    if message.photo:
+        file_id = message.photo[-1].file_id # Берем последнее (самое большое) фото
+    elif message.video:
+        file_id = message.video.file_id
+    elif message.document:
+        file_id = message.document.file_id
+    elif message.animation:
+        file_id = message.animation.file_id
+    elif message.audio:
+        file_id = message.audio.file_id
+    elif message.voice:
+        file_id = message.voice.file_id
+    elif message.sticker:
+        file_id = message.sticker.file_id
+
+    if file_id:
+        response_text = f"File ID: <code>{file_id}</code>"
+        await message.reply(response_text)

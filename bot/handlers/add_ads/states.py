@@ -29,8 +29,8 @@ async def ad_type_selected(call: CallbackQuery, state: FSMContext):
     lang = user.language
 
     await state.update_data(ad_type=call.data)
-    await call.message.edit_text(
-        get_text("choose_property_type", lang),
+    await call.message.edit_caption(
+        caption=get_text("choose_property_type", lang),
         reply_markup=get_property_type_kb(lang)  # Возвращает к выбору аренда / продажа
     )
     await state.set_state(AddAd.type_property)
@@ -49,15 +49,15 @@ async def type_property_selected(call: CallbackQuery, state: FSMContext):
     await state.update_data(type_property=call.data)
 
     if call.data in ["residential_property", "commercial_property"]:
-        await call.message.edit_text(
-            get_text("choose_residential_type", lang),
+        await call.message.edit_caption(
+            caption=get_text("choose_residential_type", lang),
             reply_markup=get_object_type_kb(lang)  # Возвращает к выбору типа недвижимости
         )
         await state.set_state(AddAd.object_type)
     else:
         await state.set_state(AddAd.furniture)
-        await call.message.edit_text(
-            get_text("furniture_question", lang),
+        await call.message.edit_caption(
+            caption=get_text("furniture_question", lang),
             reply_markup=get_furniture_kb(lang)  # Возвращает к выбору типа недвижимости
         )
 
@@ -75,8 +75,8 @@ async def object_type_selected(call: CallbackQuery, state: FSMContext):
     if call.data != 'back_to_furniture_selected':
         await state.update_data(object_type=call.data)
     await state.set_state(AddAd.furniture)
-    await call.message.edit_text(
-        get_text("furniture_question", lang),
+    await call.message.edit_caption(
+        caption=get_text("furniture_question", lang),
         reply_markup=get_furniture_kb(lang)  # Возвращает к выбору типа жилого объекта
     )
 
@@ -97,14 +97,14 @@ async def furniture_selected(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     if data['ad_type'] == 'sale':
         await state.set_state(AddAd.number_rooms)
-        await call.message.edit_text(
-            get_text("choose_rooms", lang),
+        await call.message.edit_caption(
+            caption=get_text("choose_rooms", lang),
             reply_markup=get_rooms_kb(lang, 'back_to_furniture_selected')  # Наличие мебели
         )
     else:
         await state.set_state(AddAd.animals)
-        await call.message.edit_text(
-            get_text("animals_question", lang),
+        await call.message.edit_caption(
+            caption=get_text("animals_question", lang),
             reply_markup=get_animals_kb(lang)  # Возвращает к Наличие мебели
         )
 
@@ -122,8 +122,8 @@ async def animals_selected(call: CallbackQuery, state: FSMContext):
     if call.data != 'back_to_children_selected':
         await state.update_data(animals=call.data)
     await state.set_state(AddAd.children)
-    await call.message.edit_text(
-        get_text("children_question", lang),
+    await call.message.edit_caption(
+        caption=get_text("children_question", lang),
         reply_markup=get_children_kb(lang)  # Возвращает к выбору отношения к животным
     )
 
@@ -141,8 +141,8 @@ async def children_selected(call: CallbackQuery, state: FSMContext):
     if call.data != 'back_to_rooms_selected':
         await state.update_data(children=call.data)
     await state.set_state(AddAd.number_rooms)
-    await call.message.edit_text(
-        get_text("choose_rooms", lang),
+    await call.message.edit_caption(
+        caption=get_text("choose_rooms", lang),
         reply_markup=get_rooms_kb(lang, 'back_to_children_selected')  # Возвращает к выбору отношения к детям
     )
 
@@ -164,8 +164,8 @@ async def rooms_selected(call: CallbackQuery, state: FSMContext):
         await state.update_data(number_rooms=rooms)
     await state.set_state(AddAd.price)
     text = get_text("select_rent_price", lang) if data['ad_type'] == 'rent' else get_text("select_buy_price", lang)
-    await call.message.edit_text(
-        text=text,
+    await call.message.edit_caption(
+        caption=text,
         reply_markup=get_back_from_message_kb(lang, 'back_to_rooms_selected')  # Возвращает к выбору количества комнат
     )
 
@@ -201,8 +201,9 @@ async def price_entered(msg: Message, state: FSMContext, message_text=None, user
             await bot.delete_message(msg.chat.id, message_id - 1)
         except Exception as ex:
             print(ex)
-    await msg.answer(
-        get_text("choose_district", lang),
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("choose_district", lang),
         reply_markup=get_districts_kb(lang, districts)  # Возвращает к вводу стоимости
     )
 
@@ -230,8 +231,8 @@ async def district_selected(call: CallbackQuery, state: FSMContext):
     if call.data != 'back_to_street_entered':
         await state.update_data(district=district)
     await state.set_state(AddAd.street)
-    await call.message.edit_text(
-        get_text("enter_street_or_skip", lang),
+    await call.message.edit_caption(
+        caption=get_text("enter_street_or_skip", lang),
         reply_markup=get_skip_street_kb(lang)  # Возвращает к выбору района
     )
 
@@ -257,7 +258,7 @@ async def street_entered(msg: Message, state: FSMContext):
         print(ex)
 
     await msg.answer(
-        get_text("enter_square", lang),
+        caption=get_text("enter_square", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_street_entered')  # Возвращает к вводу улицы
     )
 
@@ -274,8 +275,8 @@ async def skip_street(call: CallbackQuery, state: FSMContext):
 
     await state.update_data(street=None)
     await state.set_state(AddAd.square)
-    await call.message.edit_text(
-        get_text("enter_square", lang),
+    await call.message.edit_caption(
+        caption=get_text("enter_square", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_street_entered')  # Возвращает к вводу улицы
     )
 
@@ -305,8 +306,9 @@ async def square_entered(msg: Message, state: FSMContext, message_text=None, use
         except Exception as ex:
             print(ex)
 
-    await msg.answer(
-        get_text("enter_floor", lang),
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("enter_floor", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_street_entered')  # Возвращает к вводу улицы
     )
 
@@ -345,8 +347,9 @@ async def floor_entered(msg: Message, state: FSMContext, message_text=None, user
         except Exception as ex:
             print(ex)
 
-    await msg.answer(
-        get_text("enter_floor_total", lang),
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("enter_floor_total", lang),
         reply_markup=get_back_from_message_kb(lang, 'back_to_floor_entered')  # Возвращает к вводу этажа
     )
 
@@ -384,8 +387,9 @@ async def floor_in_house_entered(msg: Message, state: FSMContext, message_text=N
         except Exception as ex:
             print(ex)
 
-    await msg.answer(
-        get_text("enter_description", lang),
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("enter_description", lang),
         reply_markup=get_skip_description_kb(lang)
     )
 
@@ -440,8 +444,9 @@ async def description_entered(msg: Message, state: FSMContext):
     except Exception as ex:
         print(ex)
 
-    await msg.answer(
-        get_text("attach_photos", lang),
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("attach_photos", lang),
         reply_markup=get_back_to_description_entered_kb(lang)  # Возвращает к вводу описания
     )
 
@@ -480,8 +485,8 @@ async def skip_description(call: CallbackQuery, state: FSMContext):
     await state.update_data(description=None)
     await state.update_data(realty_id=realty.id)
     await state.set_state(AddAd.photos_realty)
-    await call.message.edit_text(
-        get_text("attach_photos", lang),
+    await call.message.edit_caption(
+        caption=get_text("attach_photos", lang),
         reply_markup=get_back_to_description_entered_kb(lang)  # Кнопка Stop для перехода к шагу после фотографий
     )
 
@@ -523,7 +528,10 @@ async def skip_description(call: CallbackQuery, state: FSMContext):
     await state.set_state(AddAd.name)
 
     await call.message.delete()
-    await call.message.answer(get_text("enter_name", lang))
+    await call.message.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("enter_name", lang)
+    )
 
 
 @router.message(AddAd.name)
@@ -544,7 +552,10 @@ async def name_entered(msg: Message, state: FSMContext):
     except Exception as ex:
         print(ex)
 
-    await msg.answer(get_text("enter_phone", lang))
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("enter_phone", lang)
+    )
 
 
 @router.message(AddAd.contact)
@@ -561,8 +572,9 @@ async def contact_entered(msg: Message, state: FSMContext):
     except Exception as ex:
         print(ex)
 
-    await msg.answer(
-        get_text("enter_agency", lang),
+    await msg.answer_photo(
+        photo=FSInputFile(ADD_AD),
+        caption=get_text("enter_agency", lang),
         reply_markup=get_agency_kb(lang)
     )
 
@@ -638,7 +650,7 @@ async def finish_add_ad(message: Message, state: FSMContext, user_id):
 
 # Подробное описание объявления
 @router.callback_query(F.data.startswith("in_detail_"))
-async def in_detail(call: CallbackQuery, state: FSMContext):
+async def in_detail(call: CallbackQuery):
     realty_id = call.data.split('_', 3)[-2]
     photo_number = int(call.data.split('_', 3)[-1])
     realty = Realty.get(Realty.id == realty_id)
@@ -648,28 +660,18 @@ async def in_detail(call: CallbackQuery, state: FSMContext):
 
     text = get_text_info_ad_full(realty, lang)
 
-    try:
-        await call.message.edit_text(
-            text=text,
-            reply_markup=get_consent_admin2_kb(
-                realty.id,
-                realty.consent_admin,
-                photo_number
-            )
+    await call.message.edit_caption(
+        caption=text,
+        reply_markup=get_consent_admin2_kb(
+            realty.id,
+            realty.consent_admin,
+            photo_number
         )
-    except Exception as e:
-        await call.message.edit_caption(
-            caption=text,
-            reply_markup=get_consent_admin2_kb(
-                realty.id,
-                realty.consent_admin,
-                photo_number
-            )
-        )
+    )
 
 # Скрыть подробности объявления
 @router.callback_query(F.data.startswith("hide_details_"))
-async def hide_details(call: CallbackQuery, state: FSMContext):
+async def hide_details(call: CallbackQuery):
     realty_id = call.data.split('_', 3)[-2]
     photo_number = int(call.data.split('_', 3)[-1])
     realty = Realty.get(Realty.id == realty_id)
@@ -677,25 +679,14 @@ async def hide_details(call: CallbackQuery, state: FSMContext):
     lang = user.language
 
     text = get_text_info_ad_incomplete(realty, lang)
-
-    try:
-        await call.message.edit_text(
-            text=text,
-            reply_markup=get_consent_admin_kb(
-                realty.id,
-                realty.consent_admin,
-                photo_number
-            )
+    await call.message.edit_caption(
+        caption=text,
+        reply_markup=get_consent_admin_kb(
+            realty.id,
+            realty.consent_admin,
+            photo_number
         )
-    except Exception as e:
-        await call.message.edit_caption(
-            caption=text,
-            reply_markup=get_consent_admin_kb(
-                realty.id,
-                realty.consent_admin,
-                photo_number
-            )
-        )
+    )
 
 
 # Одобрение объявления

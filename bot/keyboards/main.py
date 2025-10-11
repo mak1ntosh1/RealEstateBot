@@ -3,6 +3,7 @@ import math
 from aiogram.types import InlineKeyboardButton, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+from bot.keyboards.utils import create_paginated_keyboard, format_my_ads_for_button
 from bot.utils.utils import get_text, get_share_link_to_bot
 from config import SUPPORT_URL, COUNT_IN_PAGE
 
@@ -57,15 +58,38 @@ def get_choice_city_kb(cities, lang):
     return ikb.as_markup(resize_keyboard=True)
 
 
+def get_my_ads_kb(current_page, lang, user):
+    total_ads_count = user.ads.count()
+    # total_pages должна быть не меньше 1, если есть хоть 1 объявление
+    total_pages = (total_ads_count + COUNT_IN_PAGE - 1) // COUNT_IN_PAGE if total_ads_count > 0 else 1
 
-def get_my_ads_kb(ads, lang):
-    ikb = InlineKeyboardBuilder()
-    for ad in ads:
-        ikb.row(
-            InlineKeyboardButton(
-                text=f'{ad.price}€ - {ad.city} - {get_text(ad.ad_type, lang)}',
-                callback_data=f'view_ad_{ad.id}')
-        )
+    # 1. Если элементов нет, страница должна быть 1 (хотя total_pages = 1)
+    if total_ads_count == 0:
+        current_page = 1
+    # 2. Страница не может быть меньше 1
+    elif current_page < 1:
+        current_page = 1
+    # 3. Страница не может превышать общее количество страниц
+    elif current_page > total_pages:
+        current_page = total_pages
+
+    # Если current_page = 1, OFFSET = 0. OFFSET всегда >= 0.
+    offset = (current_page - 1) * COUNT_IN_PAGE
+
+    ads_on_page = (
+        user.ads.model.select().where(user.ads.model.user == user).order_by(
+            user.ads.model.id.desc()
+        ).limit(COUNT_IN_PAGE).offset(offset))
+
+    ikb = create_paginated_keyboard(
+        items_on_page=list(ads_on_page),
+        total_pages=total_pages,
+        current_page=current_page,
+        item_to_button_func=format_my_ads_for_button,
+        items_in_row=1,
+        nav_prefix='my_ads',
+        lang=lang
+    )
 
     ikb.row(InlineKeyboardButton(text=get_text('cancel', lang), callback_data=f'cancel_to_menu'))
     return ikb.as_markup(resize_keyboard=True)
@@ -124,4 +148,5 @@ async def get_realty_cards_favorites_kb(favorites, page, call, lang):
     ikb.row(InlineKeyboardButton(text=get_text('cancel', lang), callback_data=f'cancel_to_menu'))
 
     return ikb.as_markup(resize_keyboard=True)
+
 

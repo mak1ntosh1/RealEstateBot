@@ -1,32 +1,20 @@
 from pathlib import Path
-
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-
+# --- Основные настройки бота ---
 TOKEN = os.getenv('BOT_TOKEN')
 if TOKEN is None:
     raise ValueError("BOT_TOKEN environment variable is not set!")
 
-BOT_NAME = 'getdomix_bot'
-
-
-
+BOT_NAME = 'rea1_estate_bot'
 ADMIN_CHAT_ID = -4728916434  # ID администратора для уведомлений
-COUNT_IN_PAGE = 15
+SUPPORT_URL = 'https://t.me/GetDomix_support'
 
-
-
-DIR_PHOTO = './bot/photos/'
-
-# Photos
-TUTORIAL = DIR_PHOTO + 'tutorial.jpg'
-
-
-# Данные для подключения к бд
-DB_HOST = os.getenv('DB_HOST', '83.217.209.163')
+# --- Настройки базы данных ---
+DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = int(os.getenv('DB_PORT', 5432))
 DB_USER = os.getenv('DB_USER', 'postgres')  # Имя пользователя БД
 DB_PASSWORD = os.getenv('DB_PASSWORD')  # Пароль БД (обязательно из ENV)
@@ -34,16 +22,27 @@ if DB_PASSWORD is None:
     raise ValueError("DB_PASSWORD environment variable is not set!")
 DB_NAME = os.getenv('DB_NAME', 'RealEstateBot')  # Имя базы данных
 
-
+# --- Пути к директориям и файлам ---
 DIR_PHOTO_ESTATES = './bot/photos/photos_estates/'
 HANDLERS_DIR = Path(__file__).parent / "bot" / "handlers"
 
-# Параметры для создания объявления
-PARAMS_CREATE = ["rooms_1_0", "rooms_1_1", "rooms_2_1", "rooms_3_1", "rooms_4_1", "rooms_5_1_more"]
+# --- Изображения для разделов / бота --- (Files ID`s)
+MAIN_MENU = 'AgACAgIAAxkBAAPyaOpA6ppOc1VsXjEK3uis-em_WXIAAqYLMhtjpVlLXlsHPM6l8MoBAAMCAAN5AAM2BA'
+TUTORIAL = 'AgACAgIAAxkBAAP2aOpA6mg7urCWDFBfAAHnR-3FxdmdAAKqCzIbY6VZS-wxpVnyqYfdAQADAgADeAADNgQ'
+FAVORITES_ADS = 'AgACAgIAAxkBAAPxaOpA6vxql1Lw5vcGDJD60l9_Gk4AAqcLMhtjpVlLD-GFDGL1wSQBAAMCAAN5AAM2BA'
+ADD_AD = 'AgACAgIAAxkBAAPuaOpA6mjiHVIH34Z6yaPyrhMIabAAAqQLMhtjpVlLieZoJ9JVsIoBAAMCAAN5AAM2BA'
+ADMIN_PANEL = 'AgACAgIAAxkBAAPvaOpA6po4aH-Ph4RZgads9bMGZpAAAqMLMhtjpVlLAXJO1ULzeq4BAAMCAAN5AAM2BA'
+CHANGE_LANG = 'AgACAgIAAxkBAAPwaOpA6gQ2BLMtqMOfyiHI-m_SMn0AAqULMhtjpVlLXKPzXptTRgMBAAMCAAN5AAM2BA'
+SETTINGS_SEARCH = 'AgACAgIAAxkBAAP1aOpA6tq0Ho18Dahoo3Sesj9bz-kAAqsLMhtjpVlLg98ayxg26FIBAAMCAAN5AAM2BA'
+MY_ADS = 'AgACAgIAAxkBAAPzaOpA6rtgI17w2urkurJnomyNjeYAAqgLMhtjpVlLySJYp6pnTtYBAAMCAAN5AAM2BA'
+SEARCH = 'AgACAgIAAxkBAAP0aOpA6jV5wArkIznU9SWYSIqr51IAAqkLMhtjpVlLSQddB9DfM2QBAAMCAAN5AAM2BA'
 
-
+# --- Параметры объявлений и поиска ---
+COUNT_IN_PAGE = 8
 COUNT_CARDS_IN_BATCH = 4
 
+# Параметры для создания объявления
+PARAMS_CREATE = ["rooms_1_0", "rooms_1_1", "rooms_2_1", "rooms_3_1", "rooms_4_1", "rooms_5_1_more"]
 
 # Параметры для настройки поиска
 PARAMS_SEARCH = PARAMS_CREATE + ["duplex", "villa", "only_owner", 'all_params']
@@ -67,10 +66,3 @@ AREAS_SEARCH = [
 TYPES_SEARCH = ["new_building", "secondary"]
 
 CONTACT_MODE = "appointment"  # Или "contact"
-
-
-SUPPORT_URL = 'https://t.me/GetDomix_support'
-
-
-
-

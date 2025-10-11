@@ -1,7 +1,9 @@
 from urllib.parse import quote
 
 from bot.databases.database import *
-from bot.texts.texts import LEXICON_RU, LEXICON_TR, LEXICON_EN
+from bot.texts.lexicon_en import LEXICON_EN
+from bot.texts.lexicon_ru import LEXICON_RU
+from bot.texts.lexicon_tr import LEXICON_TR
 
 
 def get_text(key: str, lang: str = 'ru') -> str:
@@ -54,7 +56,7 @@ def get_text_info_ad_full(realty, lang, result: bool = None) -> str:
     ).replace(
         '{contact}', realty.contact or "Не указано"
     ).replace(
-        '{agency}',  realty.agency
+        '{agency}',  realty.agency or "Не указано"
     ).replace(
         '{agency_name}', f'{get_text("agency_name", lang)} {realty.agency_name}' if realty.agency_name else ""
     )
@@ -80,30 +82,48 @@ def get_text_info_ad_incomplete(realty, lang) -> str:
     )
 
 
-
 async def search_realty(user, without_filters=None):
+    query = Realty.select().where(Realty.consent_admin == True)
+
     if not without_filters:
-        with db.atomic():
-            params = [p.title_parameter for p in Apartment_Parameters.select().where(Apartment_Parameters.user == user)]
-
-            districts = []
-            room_params = []
-
-            for param in params:
-                if param in ['rooms_1-0', 'rooms_1-1', 'rooms_2-1', 'rooms_3-1', 'rooms_4-1', 'rooms_5-1_more']:
-                    room_params.append(param)
-                else:
-                    districts.append(param)
-
-        query = Realty.select().where(
-            ((Realty.ad_type == user.ad_type) if user.ad_type else True) &
-            ((Realty.object_type == user.type_object) if user.type_object else True) &
-            ((Realty.type_property == user.type_property) if user.type_property else True) &
-            ((Realty.city == user.city) if user.city else True) &
-            ((Realty.price.cast('INTEGER') <= user.price) if user.price else True) &
-            ((Realty.square.cast('INTEGER') >= user.total_area) if user.total_area is not None and user.total_area > 0 else True) &
-            (Realty.consent_admin == True)
+        param_query = (
+            Apartment_Parameters
+            .select(Apartment_Parameters.title_parameter)
+            .where(Apartment_Parameters.user == user)
         )
+        params = [p.title_parameter for p in param_query]
+
+        districts = []
+        room_params = []
+
+        for param in params:
+            if param.startswith('rooms_'):
+                room_params.append(param)
+            else:
+                districts.append(param)
+
+        base_conditions = []
+
+        if user.ad_type:
+            base_conditions.append(Realty.ad_type == user.ad_type)
+
+        if user.type_object:
+            base_conditions.append(Realty.object_type == user.type_object)
+
+        if user.type_property:
+            base_conditions.append(Realty.type_property == user.type_property)
+
+        if user.city:
+            base_conditions.append(Realty.city == user.city)
+
+        if user.price:
+            base_conditions.append(Realty.price.cast('INTEGER') <= user.price)
+
+        if user.total_area is not None and user.total_area > 0:
+            base_conditions.append(Realty.square.cast('INTEGER') >= user.total_area)
+
+        if base_conditions:
+            query = query.where(*base_conditions)
 
         if districts:
             query = query.where(Realty.district.in_(districts))
@@ -111,13 +131,7 @@ async def search_realty(user, without_filters=None):
         if room_params:
             query = query.where(Realty.number_rooms.in_(room_params))
 
-        if user.ad_type == "sale" and user.type_property:
-            query = query.where(Realty.type_property == user.type_property)
-    else:
-        query = Realty.select().where(Realty.consent_admin == True)
-
-    return list(query)
-
+    return query
 
 def format_realty_card(realty) -> str:
     return (

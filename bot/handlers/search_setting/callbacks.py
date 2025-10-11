@@ -8,7 +8,7 @@ from bot.keyboards.setting_search import *
 from bot.keyboards.start_search import get_realty_card_kb
 from bot.utils.utils import search_realty, get_text_info_ad_incomplete
 from bot.states.states import SearchSettings
-from config import PARAMS_SEARCH
+from config import PARAMS_SEARCH, SETTINGS_SEARCH
 
 router = Router()
 
@@ -22,7 +22,12 @@ async def start_configure_search(call: CallbackQuery, state: FSMContext):
 
     lang = user.language if user and user.language else 'ru'
     await state.set_state(SearchSettings.ad_type)
-    await call.message.edit_text(get_text('select_ad_type', lang), reply_markup=get_ad_type_kb(user.ad_type, lang))
+    await call.message.delete()
+    await call.message.answer_photo(
+        photo=SETTINGS_SEARCH,
+        caption=get_text('select_ad_type', lang),
+        reply_markup=get_ad_type_kb(user.ad_type, lang)
+    )
     await call.answer()
 
 
@@ -40,7 +45,7 @@ async def select_ad_type(call: CallbackQuery, state: FSMContext):
 
     next_state = SearchSettings.rent_select_city if user.ad_type == "rent" else SearchSettings.buy_select_city
     await state.set_state(next_state)
-    await call.message.edit_text(get_text('select_city', lang), reply_markup=get_city_kb(user.city, lang=lang))
+    await call.message.edit_caption(caption=get_text('select_city', lang), reply_markup=get_city_kb(user.city, lang=lang))
     await call.answer()
 
 
@@ -72,10 +77,10 @@ async def select_city(call: CallbackQuery, state: FSMContext):
             if param.title_parameter in PARAMS_SEARCH
         ]
 
-        await call.message.edit_text(get_text('select_apartment_params', lang),
+        await call.message.edit_caption(caption=get_text('select_apartment_params', lang),
                                      reply_markup=get_apartment_params_kb(filtered_params, lang=lang))
     else:
-        await call.message.edit_text(get_text('select_property_type', lang),
+        await call.message.edit_caption(caption=get_text('select_property_type', lang),
                                      reply_markup=get_property_type_kb2(user.type_property, lang=lang))
     await call.answer()
 
@@ -103,11 +108,11 @@ async def select_property_type2(call: CallbackQuery, state: FSMContext):
 
     if type_object == 'land':
         await state.set_state(SearchSettings.buy_select_apartment_params)
-        await call.message.edit_text(get_text('select_apartment_params', lang),
+        await call.message.edit_caption(caption=get_text('select_apartment_params', lang),
                                      reply_markup=get_apartment_params_kb(filtered_params, lang=lang))
     else:
         await state.set_state(SearchSettings.buy_select_property_type)
-        await call.message.edit_text(get_text('choose_residential_type', lang),
+        await call.message.edit_caption(caption=get_text('choose_residential_type', lang),
                                      reply_markup=get_property_type_kb(user.type_property, lang=lang))
     await call.answer()
 
@@ -134,7 +139,7 @@ async def select_property_type(call: CallbackQuery, state: FSMContext):
     ]
 
     await state.set_state(SearchSettings.buy_select_apartment_params)
-    await call.message.edit_text(get_text('select_apartment_params', lang),
+    await call.message.edit_caption(caption=get_text('select_apartment_params', lang),
                                  reply_markup=get_apartment_params_kb(filtered_params, lang=lang))
     await call.answer()
 
@@ -180,7 +185,7 @@ async def select_rent_price(call: CallbackQuery, state: FSMContext):
 
     lang = user.language if user.language else 'ru'
     await state.set_state(SearchSettings.rent_select_area)
-    await call.message.edit_text(get_text('select_area', lang), reply_markup=get_area_kb(user.total_area, lang=lang))
+    await call.message.edit_caption(caption=get_text('select_area', lang), reply_markup=get_area_kb(user.total_area, lang=lang))
     await call.answer()
 
 
@@ -197,7 +202,7 @@ async def select_buy_price(call: CallbackQuery, state: FSMContext):
 
     lang = user.language if user.language else 'ru'
     await state.set_state(SearchSettings.buy_select_area)
-    await call.message.edit_text(get_text('select_area', lang), reply_markup=get_area_kb(user.total_area, lang=lang))
+    await call.message.edit_caption(caption=get_text('select_area', lang), reply_markup=get_area_kb(user.total_area, lang=lang))
     await call.answer()
 
 
@@ -231,7 +236,7 @@ async def select_area(call: CallbackQuery, state: FSMContext):
         if param.title_parameter in all_districts
     ]
 
-    await call.message.edit_text(get_text('select_district', lang), reply_markup=get_district_kb(user.city, selected_districts, lang=lang))
+    await call.message.edit_caption(caption=get_text('select_district', lang), reply_markup=get_district_kb(user.city, selected_districts, lang=lang))
     await call.answer()
 
 
@@ -308,7 +313,7 @@ async def next_step(call: CallbackQuery, state: FSMContext):
             SearchSettings.confirm_settings: await format_settings_text(call.from_user.id, await state.get_data(), lang)
         }
         keyboard = get_search_settings_kb(user, lang)
-        await call.message.edit_text(texts[next_state], reply_markup=keyboard[next_state])
+        await call.message.edit_caption(caption=texts[next_state], reply_markup=keyboard[next_state])
     await call.answer()
 
 
@@ -400,7 +405,7 @@ async def back_step(call: CallbackQuery, state: FSMContext):
         SearchSettings.buy_select_district: get_text('select_district', lang)
     }
     keyboard = get_search_settings_kb(user, lang)
-    await call.message.edit_text(texts[prev_state], reply_markup=keyboard[prev_state])
+    await call.message.edit_caption(caption=texts[prev_state], reply_markup=keyboard[prev_state])
     await call.answer()
 
 
@@ -444,7 +449,7 @@ async def back_to_settings(call: CallbackQuery, state: FSMContext):
     prev_state = SearchSettings.rent_select_district if data.get(
         "ad_type") == "rent" else SearchSettings.buy_select_district
     await state.set_state(prev_state)
-    await call.message.edit_text(get_text('select_district', lang),
+    await call.message.edit_caption(caption=get_text('select_district', lang),
                                  reply_markup=get_district_kb(user.city, data.get("districts", []), lang=lang))
     await call.answer()
 
@@ -483,7 +488,7 @@ async def start_search(call: CallbackQuery, state: FSMContext):
         result_text = f"{settings_text}\n\n{get_text('search_started', lang)}\n\n" \
                       f"{get_text('no_results_found', lang)}"
 
-    await call.message.edit_text(result_text)
+    await call.message.edit_caption(caption=result_text)
     await state.clear()
     await call.answer()
 
