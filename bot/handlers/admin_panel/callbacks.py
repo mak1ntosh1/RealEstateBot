@@ -90,7 +90,7 @@ async def admin_view_ad(call: CallbackQuery):
         try:
             await call.message.edit_media(
                 media=InputMediaPhoto(
-                    media=FSInputFile(photo),
+                    media=photo.file_id,
                     caption=text
                 ),
                 reply_markup=get_manage_realty2_kb(realty.id, realty.consent_admin, photo_number, page)
@@ -99,7 +99,7 @@ async def admin_view_ad(call: CallbackQuery):
             with suppress(Exception):
                 await call.message.delete()
             await call.message.answer_photo(
-                photo=FSInputFile(photo),
+                photo=photo.file_id,
                 caption=text,
                 reply_markup=get_manage_realty2_kb(realty.id, realty.consent_admin, photo_number, page)
             )
@@ -137,7 +137,7 @@ async def admin_in_detail(call: CallbackQuery):
         try:
             await call.message.edit_media(
                 media=InputMediaPhoto(
-                    media=FSInputFile(photo),
+                    media=photo.file_id,
                     caption=text
                 ),
                 reply_markup=get_manage_realty2_kb(realty.id, realty.consent_admin, photo_number, page)
@@ -145,7 +145,7 @@ async def admin_in_detail(call: CallbackQuery):
         except Exception as e:
             await call.message.delete()
             await call.message.answer_photo(
-                photo=FSInputFile(photo),
+                photo=photo.file_id,
                 caption=text,
                 reply_markup=get_manage_realty2_kb(realty.id, realty.consent_admin, photo_number, page)
             )
@@ -181,7 +181,7 @@ async def admin_hide_details(call: CallbackQuery):
         try:
             await call.message.edit_media(
                 media=InputMediaPhoto(
-                    media=FSInputFile(photo),
+                    media=photo.file_id,
                     caption=text
                 ),
                 reply_markup=get_manage_realty_kb(realty.id, realty.consent_admin, photo_number, page)
@@ -189,7 +189,7 @@ async def admin_hide_details(call: CallbackQuery):
         except Exception as e:
             await call.message.delete()
             await call.message.answer_photo(
-                photo=FSInputFile(photo),
+                photo=photo.file_id,
                 caption=text,
                 reply_markup=get_manage_realty_kb(realty.id, realty.consent_admin, photo_number, page)
             )
@@ -223,7 +223,7 @@ async def admin_next_photo(call: CallbackQuery):
 
     if photo:
         await call.message.edit_media(
-            media=InputMediaPhoto(media=FSInputFile(photo.photo_path), caption=text),
+            media=InputMediaPhoto(media=photo.file_id, caption=text),
             reply_markup=get_manage_realty_kb(realty.id, realty.consent_admin, photo_number + 1, page)
         )
     else:
@@ -256,7 +256,7 @@ async def admin_next_photo(call: CallbackQuery):
 
     if photo:
         await call.message.edit_media(
-            media=InputMediaPhoto(media=FSInputFile(photo.photo_path), caption=text),
+            media=InputMediaPhoto(media=photo.file_id, caption=text),
             reply_markup=get_manage_realty2_kb(realty.id, realty.consent_admin, photo_number + 1, page)
         )
     else:
@@ -290,7 +290,7 @@ async def admin_accept_realty(call: CallbackQuery):
 
     if photo:
         await call.message.edit_media(
-            media=InputMediaPhoto(media=FSInputFile(photo.photo_path), caption=text),
+            media=InputMediaPhoto(media=photo.file_id, caption=text),
             reply_markup=get_manage_realty_kb(realty.id, realty.consent_admin, photo_number + 1, page)
         )
     else:
@@ -324,7 +324,7 @@ async def admin_accept_realty(call: CallbackQuery):
 
     if photo:
         await call.message.edit_media(
-            media=InputMediaPhoto(media=FSInputFile(photo.photo_path), caption=text),
+            media=InputMediaPhoto(media=photo.file_id, caption=text),
             reply_markup=get_manage_realty_kb(realty.id, realty.consent_admin, photo_number + 1, page)
         )
     else:

@@ -2,7 +2,7 @@ import uuid
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, FSInputFile, InputMediaPhoto
+from aiogram.types import CallbackQuery, Message, InputMediaPhoto
 
 from bot.databases.database import Users, City_Districts, Realty, PhotosRealty
 from bot.filters.filters import CustomFilter
@@ -493,29 +493,28 @@ async def skip_description(call: CallbackQuery, state: FSMContext):
 
 @router.message(AddAd.photos_realty, F.photo)
 async def photos_received(message: Message, album: list[Message] = None, state: FSMContext = None):
-    """💾 Сохраняет — Фото недвижимости"""
+    """💾 Сохраняет file_id фотографий недвижимости"""
 
     data = await state.get_data()
     realty = Realty.get_or_none(Realty.id == data["realty_id"])
-    if realty:
-        photos = album if album else [message]
-        saved_files = []
 
-        for msg in photos:
-            photo = msg.photo[-1]  # Самое качественное фото
-            unique_filename = f"{uuid.uuid4()}.jpg"
-            file_path = settings.PathSettings.DIR_PHOTO_ESTATES
+    if not realty:
+        await message.reply("Ошибка: Объявление не найдено.")
+        return
 
-            await bot.download(photo.file_id, destination=file_path)
+    photos = album if album else [message]
+    saved_count = 0
 
-            PhotosRealty.create(
-                realty=realty,
-                photo_path=file_path
-            )
+    for msg in photos:
+        photo = msg.photo[-1]  # Самое качественное фото
 
-            saved_files.append(unique_filename)
+        PhotosRealty.create(
+            realty=realty,
+            file_id=photo.file_id
+        )
+        saved_count += 1
 
-        await message.reply(f"✅ Фото сохранено!")
+    await message.reply(f"✅ Сохранено {saved_count} фото! (File ID)")
 
 
 @router.callback_query(CustomFilter(AddAd.photos_realty, 'None', F.data == "go_to_name_entered"))
@@ -636,14 +635,14 @@ async def finish_add_ad(message: Message, state: FSMContext, user_id):
 
     if photo:
         await bot.send_photo(
-            photo=FSInputFile(photo.photo_path),
-            chat_id=settings.BotSettings.ADMIN_CHAT_ID,
+            photo=photo.file_id,
+            chat_id=settings.bot.ADMIN_CHAT_ID,
             caption=text,
             reply_markup=get_consent_admin_kb(realty.id, realty.consent_admin, photo_number + 1)
         )
     else:
         await bot.send_message(
-            settings.BotSettings.ADMIN_CHAT_ID, text,
+            settings.bot.ADMIN_CHAT_ID, text,
             reply_markup=get_consent_admin_kb(realty.id, realty.consent_admin, photo_number + 1)
         )
 
@@ -764,7 +763,7 @@ async def next_photo(call: CallbackQuery, state: FSMContext):
 
     if photo:
         await call.message.edit_media(
-            media=InputMediaPhoto(media=FSInputFile(photo.photo_path), caption=text),
+            media=InputMediaPhoto(media=photo.file_id, caption=text),
             reply_markup=get_consent_admin_kb(realty.id, realty.consent_admin, photo_number + 1)
         )
     else:
@@ -794,7 +793,7 @@ async def next_photo2(call: CallbackQuery, state: FSMContext):
 
     if photo:
         await call.message.edit_media(
-            media=InputMediaPhoto(media=FSInputFile(photo.photo_path), caption=text),
+            media=InputMediaPhoto(media=photo.file_id, caption=text),
             reply_markup=get_consent_admin_kb(realty.id, realty.consent_admin, photo_number + 1)
         )
     else:

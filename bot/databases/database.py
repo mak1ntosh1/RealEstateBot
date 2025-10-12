@@ -94,7 +94,7 @@ class Favorites(BaseModel):
 class PhotosRealty(BaseModel):
     id = AutoField(primary_key=True)
     realty = ForeignKeyField(Realty, backref="photos", on_delete="CASCADE")
-    photo_path = CharField(unique=True)
+    file_id = CharField(unique=True)
 
 
 if __name__ == '__main__':

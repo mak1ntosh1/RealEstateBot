@@ -1,6 +1,6 @@
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery
 
 from bot.databases.database import Users, Realty
 from bot.keyboards.main import *
@@ -120,7 +120,7 @@ async def view_ad(call: CallbackQuery):
     await call.message.delete()
     if photo:
         await call.message.answer_photo(
-            photo=FSInputFile(photo.photo_path),
+            photo=photo.file_id,
             caption=text,
             reply_markup=get_my_ad_kb(realty.id, photo_number + 1, lang)
         )

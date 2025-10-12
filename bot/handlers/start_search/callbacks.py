@@ -2,7 +2,7 @@ from contextlib import suppress
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InputMediaPhoto, FSInputFile
+from aiogram.types import CallbackQuery, InputMediaPhoto
 from peewee import fn
 
 from bot.databases.database import Users, Realty, Favorites
@@ -200,7 +200,7 @@ async def card_in_detail(call: CallbackQuery, new_call_data=None, is_favorites=F
     if photo:
         await call.message.edit_media(
             media=InputMediaPhoto(
-                media=FSInputFile(photo.photo_path),
+                media=photo.file_id,
                 caption=get_text_info_ad_full(realty, lang)
             ),
             reply_markup=get_realty_card2_kb(
@@ -277,7 +277,7 @@ async def card_next_photo(call: CallbackQuery):
     if photo:
         await call.message.edit_media(
             media=InputMediaPhoto(
-                media=FSInputFile(photo.photo_path),
+                media=photo.file_id,
                 caption=get_text_info_ad_full(realty, lang)
             ),
             reply_markup=get_realty_card2_kb(
