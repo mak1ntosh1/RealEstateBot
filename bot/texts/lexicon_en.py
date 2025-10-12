@@ -69,7 +69,7 @@ LEXICON_EN = {
 
     # texts (existing)
     'welcome_text': '''
-<b>Welcome to GET DOMIX! 👋</b>
+<b>Welcome to Real Estate Bot! 👋</b>
 I am a helper bot that will assist you in finding, renting, selling, or buying an apartment in 🇹🇷 Turkey.
 
 <i>📌 If you don't see any buttons, click the square icon next to the microphone</i> 🎙

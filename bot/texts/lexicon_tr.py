@@ -69,7 +69,7 @@ LEXICON_TR = {
 
     # texts (mevcut)
     'welcome_text': '''
-<b>GET DOMIX'e Hoş Geldiniz! 👋</b>
+<b>Real Estate Bot'e Hoş Geldiniz! 👋</b>
 Ben, Türkiye'de 🇹🇷 daire bulmanıza, kiralamanıza, satmanıza veya satın almanıza yardımcı olacak bir bot asistanıyım.
 
 <i>📌 Eğer düğmeleriniz yoksa, mikrofonun yanındaki kareye tıklayın</i> 🎙
