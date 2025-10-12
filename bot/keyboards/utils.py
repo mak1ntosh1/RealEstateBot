@@ -3,7 +3,7 @@ from typing import Callable, Any, Tuple, List
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from bot.databases.database import Realty
+from bot.databases.database import Realty, City_Districts
 from bot.utils.utils import get_text
 
 
@@ -14,7 +14,7 @@ def create_paginated_keyboard(
     item_to_button_func: Callable[[Any, Any], Tuple[str, str]],
     items_in_row: int = 1,
     nav_prefix: str = "pag",
-    lang: str =  None
+    other_parameters: dict = None
 ):
     ikb = InlineKeyboardBuilder()
     """
@@ -32,7 +32,7 @@ def create_paginated_keyboard(
 
     # --- Добавляем кнопки для элементов текущей страницы ---
     for item in items_on_page:
-        button_text, button_callback_data = item_to_button_func(item, lang)
+        button_text, button_callback_data = item_to_button_func(item, other_parameters)
         ikb.button(text=button_text, callback_data=f'{button_callback_data}_{current_page}')
 
     if items_on_page:
@@ -55,7 +55,7 @@ def create_paginated_keyboard(
     # Индикатор страницы
     nav_row.append(
         InlineKeyboardButton(
-            text=f"{current_page + 1}/{total_pages}",
+            text=f"{current_page}/{total_pages}",
             callback_data=f"Null"
         )
     )
@@ -75,8 +75,15 @@ def create_paginated_keyboard(
     return ikb
 
 
-def format_my_ads_for_button(ad: Realty, lang=None) -> Tuple[str, str]:
+def format_my_ads_for_button(ad: Realty, other_parameters=None) -> Tuple[str, str]:
     """Эта функция используется для форматирования кнопок в пагинации с объектами Ads"""
-    button_text = f"{ad.price}€ - {ad.city} - {get_text(ad.ad_type, lang)}"
+    button_text = f"{ad.price}€ - {ad.city} - {get_text(ad.ad_type, other_parameters.get('lang'))}"
     callback_data = f"view_ad_{ad.id}"
+    return button_text, callback_data
+
+
+def format_district_for_button(district: City_Districts, other_parameters=None) -> Tuple[str, str]:
+    """Эта функция используется для форматирования кнопок в пагинации с объектами Ads"""
+    button_text = f"✅ {district.district}" if district.district in other_parameters.get('selected_districts') else f"{district.district}"
+    callback_data = f"district_{district.district}"
     return button_text, callback_data

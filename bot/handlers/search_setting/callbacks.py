@@ -2,8 +2,9 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import any_state
+from peewee import fn
 
-from bot.databases.database import Users
+from bot.databases.database import Users, Realty
 from bot.keyboards.setting_search import *
 from bot.keyboards.start_search import get_realty_card_kb
 from bot.utils.utils import search_realty, get_text_info_ad_incomplete
@@ -236,7 +237,8 @@ async def select_area(call: CallbackQuery, state: FSMContext):
         if param.title_parameter in all_districts
     ]
 
-    await call.message.edit_caption(caption=get_text('select_district', lang), reply_markup=get_district_kb(user.city, selected_districts, lang=lang))
+    await call.message.edit_caption(caption=get_text('select_district', lang), reply_markup=get_district_kb(
+        current_page=1, selected_city=user.city, selected_districts=selected_districts, lang=lang))
     await call.answer()
 
 
@@ -244,7 +246,8 @@ async def select_area(call: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data.startswith("district_"))
 async def select_district(call: CallbackQuery, state: FSMContext):
     user = Users.get(Users.user_id == call.from_user.id)
-    district = call.data.split("_", 1)[-1]
+    district = call.data.split("_", 2)[-2]
+    current_page = int(call.data.split("_", 2)[-1])
 
     all_districts = [district.district for district in City_Districts.select().distinct(City_Districts.district)]
     selected_districts = [
@@ -268,54 +271,62 @@ async def select_district(call: CallbackQuery, state: FSMContext):
 
     await state.update_data(districts=selected_districts)
 
-    await call.message.edit_reply_markup(reply_markup=get_district_kb(user.city, selected_districts, lang=user.language))
+    await call.message.edit_reply_markup(reply_markup=get_district_kb(current_page, user.city, selected_districts, lang=user.language))
     await call.answer()
 
 
 
 # Навигация: Далее
-@router.callback_query(F.data == "next")
+@router.callback_query((F.data == "next") | F.data.startswith("districts"))
 async def next_step(call: CallbackQuery, state: FSMContext):
+    current_page_districts = 1
     user = Users.get(Users.user_id == call.from_user.id)
     lang = user.language
-
     current_state = await state.get_state()
-    state_map = {
-        SearchSettings.ad_type: SearchSettings.rent_select_city,
-        SearchSettings.rent_select_city: SearchSettings.rent_select_apartment_params,
-        SearchSettings.rent_select_apartment_params: SearchSettings.rent_select_price,
-        SearchSettings.rent_select_price: SearchSettings.rent_select_area,
-        SearchSettings.rent_select_area: SearchSettings.rent_select_district,
-        SearchSettings.rent_select_district: SearchSettings.confirm_settings,
-        SearchSettings.buy_select_city: SearchSettings.buy_select_property_type2,
-        SearchSettings.buy_select_property_type2: SearchSettings.buy_select_property_type,
-        SearchSettings.buy_select_property_type: SearchSettings.buy_select_apartment_params,
-        SearchSettings.buy_select_apartment_params: SearchSettings.buy_select_price,
-        SearchSettings.buy_select_price: SearchSettings.buy_select_area,
-        SearchSettings.buy_select_area: SearchSettings.buy_select_district,
-        SearchSettings.buy_select_district: SearchSettings.confirm_settings,
-    }
-    next_state = state_map.get(current_state)
-    if next_state:
-        await state.set_state(next_state)
-        texts = {
-            SearchSettings.rent_select_city: get_text('select_city', lang),
-            SearchSettings.rent_select_apartment_params: get_text('select_apartment_params', lang),
-            SearchSettings.rent_select_price: get_text('select_rent_price', lang),
-            SearchSettings.rent_select_area: get_text('select_area', lang),
-            SearchSettings.rent_select_district: get_text('select_district', lang),
-            SearchSettings.buy_select_property_type2: get_text('select_property_type', lang),
-            SearchSettings.buy_select_property_type: get_text('choose_residential_type', lang),
-            SearchSettings.buy_select_apartment_params: get_text('select_apartment_params', lang),
-            SearchSettings.buy_select_price: get_text('select_buy_price', lang),
-            SearchSettings.buy_select_area: get_text('select_area', lang),
-            SearchSettings.buy_select_district: get_text('select_district', lang),
-            SearchSettings.confirm_settings: await format_settings_text(call.from_user.id, await state.get_data(), lang)
-        }
-        keyboard = get_search_settings_kb(user, lang)
-        await call.message.edit_caption(caption=texts[next_state], reply_markup=keyboard[next_state])
-    await call.answer()
 
+    if len(call.data.split("_")) == 2:
+        current_page_districts = int(call.data.split("_")[-1])
+        text = get_text('select_district', lang)
+        next_state = SearchSettings.rent_select_district if current_state == SearchSettings.rent_select_area else SearchSettings.buy_select_district
+    else:
+        state_map = {
+            SearchSettings.ad_type: SearchSettings.rent_select_city,
+            SearchSettings.rent_select_city: SearchSettings.rent_select_apartment_params,
+            SearchSettings.rent_select_apartment_params: SearchSettings.rent_select_price,
+            SearchSettings.rent_select_price: SearchSettings.rent_select_area,
+            SearchSettings.rent_select_area: SearchSettings.rent_select_district,
+            SearchSettings.rent_select_district: SearchSettings.confirm_settings,
+            SearchSettings.buy_select_city: SearchSettings.buy_select_property_type2,
+            SearchSettings.buy_select_property_type2: SearchSettings.buy_select_property_type,
+            SearchSettings.buy_select_property_type: SearchSettings.buy_select_apartment_params,
+            SearchSettings.buy_select_apartment_params: SearchSettings.buy_select_price,
+            SearchSettings.buy_select_price: SearchSettings.buy_select_area,
+            SearchSettings.buy_select_area: SearchSettings.buy_select_district,
+            SearchSettings.buy_select_district: SearchSettings.confirm_settings,
+        }
+        next_state = state_map.get(current_state)
+        text = ''
+        if next_state:
+            await state.set_state(next_state)
+            texts = {
+                SearchSettings.rent_select_city: get_text('select_city', lang),
+                SearchSettings.rent_select_apartment_params: get_text('select_apartment_params', lang),
+                SearchSettings.rent_select_price: get_text('select_rent_price', lang),
+                SearchSettings.rent_select_area: get_text('select_area', lang),
+                SearchSettings.rent_select_district: get_text('select_district', lang),
+                SearchSettings.buy_select_property_type2: get_text('select_property_type', lang),
+                SearchSettings.buy_select_property_type: get_text('choose_residential_type', lang),
+                SearchSettings.buy_select_apartment_params: get_text('select_apartment_params', lang),
+                SearchSettings.buy_select_price: get_text('select_buy_price', lang),
+                SearchSettings.buy_select_area: get_text('select_area', lang),
+                SearchSettings.buy_select_district: get_text('select_district', lang),
+                SearchSettings.confirm_settings: await format_settings_text(call.from_user.id, await state.get_data(), lang)
+            }
+            text = texts[next_state]
+
+    keyboard = get_search_settings_kb(user, lang, current_page_districts=current_page_districts)
+    await call.answer()
+    await call.message.edit_caption(caption=text, reply_markup=keyboard[next_state])
 
 # Навигация: Далее
 @router.callback_query(F.data.startswith("any_option_"))
@@ -364,48 +375,55 @@ async def any_option(call: CallbackQuery, state: FSMContext):
 
 
 # Навигация: Назад
-@router.callback_query(F.data == "back")
+@router.callback_query((F.data == "back") | F.data.startswith("districts"))
 async def back_step(call: CallbackQuery, state: FSMContext):
+    current_page_districts = 1
     user = Users.get(Users.user_id == call.from_user.id)
     lang = user.language if user.language else 'ru'
-
     current_state = await state.get_state()
-    state_map = {
-        SearchSettings.rent_select_apartment_params: SearchSettings.rent_select_city,
-        SearchSettings.rent_select_price: SearchSettings.rent_select_apartment_params,
-        SearchSettings.rent_select_area: SearchSettings.rent_select_price,
-        SearchSettings.rent_select_district: SearchSettings.rent_select_area,
-        SearchSettings.buy_select_property_type: SearchSettings.buy_select_property_type2,
-        SearchSettings.buy_select_property_type2: SearchSettings.buy_select_city,
-        SearchSettings.buy_select_apartment_params:
-            SearchSettings.buy_select_property_type2 if user.type_object == 'land'
-            else SearchSettings.buy_select_property_type,
-        SearchSettings.buy_select_price: SearchSettings.buy_select_apartment_params,
-        SearchSettings.buy_select_area: SearchSettings.buy_select_price,
-        SearchSettings.buy_select_district: SearchSettings.buy_select_area,
-        SearchSettings.confirm_settings: SearchSettings.rent_select_district
-        if (await state.get_data()).get("ad_type") == "rent"
-        else SearchSettings.buy_select_district
-    }
-    prev_state = state_map.get(current_state, SearchSettings.ad_type)
-    await state.set_state(prev_state)
-    texts = {
-        SearchSettings.ad_type: get_text('select_ad_type', lang),
-        SearchSettings.rent_select_city: get_text('select_city', lang),
-        SearchSettings.rent_select_apartment_params: get_text('select_apartment_params', lang),
-        SearchSettings.rent_select_price: get_text('select_rent_price', lang),
-        SearchSettings.rent_select_area: get_text('select_area', lang),
-        SearchSettings.rent_select_district: get_text('select_district', lang),
-        SearchSettings.buy_select_city: get_text('select_city', lang),
-        SearchSettings.buy_select_property_type2: get_text('select_property_type', lang),
-        SearchSettings.buy_select_property_type: get_text('choose_residential_type', lang),
-        SearchSettings.buy_select_apartment_params: get_text('select_apartment_params', lang),
-        SearchSettings.buy_select_price: get_text('select_buy_price', lang),
-        SearchSettings.buy_select_area: get_text('select_area', lang),
-        SearchSettings.buy_select_district: get_text('select_district', lang)
-    }
-    keyboard = get_search_settings_kb(user, lang)
-    await call.message.edit_caption(caption=texts[prev_state], reply_markup=keyboard[prev_state])
+
+    if len(call.data.split("_")) == 2:
+        current_page_districts = int(call.data.split("_")[-1])
+        text = get_text('select_district', lang)
+        prev_state = SearchSettings.rent_select_district if current_state == SearchSettings.confirm_settings else SearchSettings.buy_select_district
+    else:
+        state_map = {
+            SearchSettings.rent_select_apartment_params: SearchSettings.rent_select_city,
+            SearchSettings.rent_select_price: SearchSettings.rent_select_apartment_params,
+            SearchSettings.rent_select_area: SearchSettings.rent_select_price,
+            SearchSettings.rent_select_district: SearchSettings.rent_select_area,
+            SearchSettings.buy_select_property_type: SearchSettings.buy_select_property_type2,
+            SearchSettings.buy_select_property_type2: SearchSettings.buy_select_city,
+            SearchSettings.buy_select_apartment_params:
+                SearchSettings.buy_select_property_type2 if user.type_object == 'land'
+                else SearchSettings.buy_select_property_type,
+            SearchSettings.buy_select_price: SearchSettings.buy_select_apartment_params,
+            SearchSettings.buy_select_area: SearchSettings.buy_select_price,
+            SearchSettings.buy_select_district: SearchSettings.buy_select_area,
+            SearchSettings.confirm_settings: SearchSettings.rent_select_district
+            if (await state.get_data()).get("ad_type") == "rent"
+            else SearchSettings.buy_select_district
+        }
+        prev_state = state_map.get(current_state, SearchSettings.ad_type)
+        await state.set_state(prev_state)
+        texts = {
+            SearchSettings.ad_type: get_text('select_ad_type', lang),
+            SearchSettings.rent_select_city: get_text('select_city', lang),
+            SearchSettings.rent_select_apartment_params: get_text('select_apartment_params', lang),
+            SearchSettings.rent_select_price: get_text('select_rent_price', lang),
+            SearchSettings.rent_select_area: get_text('select_area', lang),
+            SearchSettings.rent_select_district: get_text('select_district', lang),
+            SearchSettings.buy_select_city: get_text('select_city', lang),
+            SearchSettings.buy_select_property_type2: get_text('select_property_type', lang),
+            SearchSettings.buy_select_property_type: get_text('choose_residential_type', lang),
+            SearchSettings.buy_select_apartment_params: get_text('select_apartment_params', lang),
+            SearchSettings.buy_select_price: get_text('select_buy_price', lang),
+            SearchSettings.buy_select_area: get_text('select_area', lang),
+            SearchSettings.buy_select_district: get_text('select_district', lang)
+        }
+        text = texts[prev_state]
+    keyboard = get_search_settings_kb(user, lang, current_page_districts=current_page_districts)
+    await call.message.edit_caption(caption=text, reply_markup=keyboard[prev_state])
     await call.answer()
 
 
@@ -450,7 +468,7 @@ async def back_to_settings(call: CallbackQuery, state: FSMContext):
         "ad_type") == "rent" else SearchSettings.buy_select_district
     await state.set_state(prev_state)
     await call.message.edit_caption(caption=get_text('select_district', lang),
-                                 reply_markup=get_district_kb(user.city, data.get("districts", []), lang=lang))
+                                 reply_markup=get_district_kb(1, user.city, data.get("districts", []), lang=lang))
     await call.answer()
 
 
@@ -458,37 +476,69 @@ async def back_to_settings(call: CallbackQuery, state: FSMContext):
 async def start_search(call: CallbackQuery, state: FSMContext):
     user = Users.get(Users.user_id == call.from_user.id)
     lang = user.language
-
     data = await state.get_data()
 
     # Формируем текст с настройками
     settings_text = await format_settings_text(call.from_user.id, data, lang)
 
-    # Выполняем поиск
-    search_results = await search_realty(user)
+    # Получаем QuerySet (который уже включает сортировку по дате)
+    search_query = await search_realty(user)
+
+    # Получаем общее количество, удаляя сортировку перед COUNT
+    count_query = search_query.order_by()
+    total_results_count = count_query.select(fn.COUNT(Realty.id)).scalar()
+
+    # Применяем LIMIT/OFFSET к ОРИГИНАЛЬНОМУ QuerySet (с сортировкой)
+    limit = settings.bot.COUNT_CARDS_IN_BATCH + 1  # +1 для проверки наличия следующей страницы
+    offset = 0  # Первая страница всегда с offset 0
+
+    # Выполняем запрос для загрузки первой пачки
+    search_query = search_query.limit(limit).offset(offset)
+    search_results = list(search_query)
+
+    # Подготовка данных для отображения
+    realty_to_show = search_results[:settings.bot.COUNT_CARDS_IN_BATCH]
+    # Есть следующая страница, если мы загрузили больше, чем размер пачки
+    has_more = len(search_results) > settings.bot.COUNT_CARDS_IN_BATCH
 
     # Формируем ответ
-    if search_results:
-        result_text = f"{settings_text}\n\n{get_text('search_started', lang)}\n\n" \
-                      f"{get_text('search_results_found', lang)} {len(search_results)}\n"
-        for realty in search_results[:4]:  # Ограничиваем до 5 результатов для примера
+    if total_results_count > 0:
+        # Формируем текст с общим количеством
+        result_text = (
+            f"{settings_text}\n\n"
+            f"{get_text('search_started', lang)}\n\n"
+            f"{get_text('search_results_found', lang)} <code>{total_results_count}</code>"
+        )
+
+        await call.message.edit_caption(caption=result_text)
+
+        # Отправляем карточки
+        for idx, realty in enumerate(realty_to_show):
             text = get_text_info_ad_incomplete(realty, lang)
 
-            await call.message.answer(text, reply_markup=get_realty_card_kb(
-                realty.id, user.user_id, lang
-            ))
-        if len(search_results) >= 5:
-            realty = search_results[4]
-            text = get_text_info_ad_incomplete(realty, lang)
+            # Определяем, является ли эта карточка последней в пачке, если есть продолжение
+            this_last_one = has_more and idx == len(realty_to_show) - 1
 
-            await call.message.answer(text, reply_markup=get_realty_card_kb(
-                realty.id, user.user_id, page=1, lang=lang, this_last_one=True
-            ))
+            await call.message.answer(
+                text,
+                reply_markup=get_realty_card_kb(
+                    realty,
+                    user.user_id,
+                    page=1,
+                    lang=lang,
+                    this_last_one=1 if this_last_one else 0
+                )
+            )
+
     else:
-        result_text = f"{settings_text}\n\n{get_text('search_started', lang)}\n\n" \
-                      f"{get_text('no_results_found', lang)}"
+        # Результаты не найдены
+        result_text = (
+            f"{settings_text}\n\n"
+            f"{get_text('search_started', lang)}\n\n"
+            f"{get_text('no_results_found', lang)}"
+        )
+        await call.message.edit_caption(caption=result_text)
 
-    await call.message.edit_caption(caption=result_text)
     await state.clear()
     await call.answer()
 

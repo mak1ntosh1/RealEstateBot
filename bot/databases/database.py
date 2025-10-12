@@ -1,6 +1,6 @@
 from peewee import (
     PostgresqlDatabase, Model, BooleanField,
-    IntegerField, CharField, ForeignKeyField, AutoField, BigIntegerField
+    IntegerField, CharField, ForeignKeyField, AutoField, BigIntegerField, DateField, DateTimeField
 )
 
 from config import settings
@@ -80,6 +80,9 @@ class Realty(BaseModel):
     agency_name = CharField(null=True)
 
     consent_admin = BooleanField(null=True)
+
+    created_at = DateTimeField(null=True)
+    published_at = DateTimeField(null=True)
 
 
 class Favorites(BaseModel):

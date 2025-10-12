@@ -28,7 +28,7 @@ class BotSettings(BaseSettings):
 
     # Константы пагинации
     COUNT_IN_PAGE: int = Field(8, ge=1, description="Количество объектов на страницу в списках")
-    COUNT_CARDS_IN_BATCH: int = Field(4, ge=1, description="Количество карточек в одной пачке для поиска")
+    COUNT_CARDS_IN_BATCH: int = Field(5, ge=1, description="Количество карточек в одной пачке для поиска")
 
     # Режим контакта
     CONTACT_MODE: str = Field("appointment", description="Режим контакта: 'appointment' или 'contact'")
@@ -89,7 +89,7 @@ class SearchConstants(BaseSettings):
     ]
 
     # Параметры поиска
-    PARAMS_SEARCH: list[str] = PARAMS_CREATE + ["duplex", "villa", "only_owner", 'all_params']
+    PARAMS_SEARCH: list[str] = PARAMS_CREATE + ["duplex", "villa", "only_owner"]
 
     PRICES_RENT_SEARCH: list[str] = [
         "rent_price_1000zl", "rent_price_2000zl", "rent_price_3000zl", "rent_price_4000zl", "rent_price_5000zl",

@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from bot.databases.database import City_Districts, Apartment_Parameters
+from bot.keyboards.utils import create_paginated_keyboard, format_district_for_button
 from bot.states.states import SearchSettings
 from bot.utils.utils import get_text
 from config import settings
@@ -110,25 +111,67 @@ def get_area_kb(selected_area=None, lang: str = 'ru'):
     return ikb.as_markup()
 
 
-def get_district_kb(selected_city=None, selected_districts=None, lang: str = 'ru'):
+from peewee import fn
+
+
+def get_district_kb(current_page: int, selected_city=None, selected_districts=None, lang: str = 'ru'):
     if selected_districts is None:
         selected_districts = []
-    ikb = InlineKeyboardBuilder()
+
+    # Формирование базового QuerySet (с учетом DISTINCT)
+    base_query = City_Districts.select(City_Districts.district).distinct()
+
     if selected_city is not None:
-        districts = City_Districts.select().where(City_Districts.city_name == selected_city).distinct(City_Districts.district)
-    else:
-        districts = City_Districts.select().distinct(City_Districts.district)
+        base_query = base_query.where(City_Districts.city_name.in_(selected_city))
 
-    for district in districts:
-        text = f"✅ {district.district}" if district.district in selected_districts else district.district
-        ikb.row(InlineKeyboardButton(text=text, callback_data=f"district_{district.district}"))
+    # Расчет общего количества районов
+    total_districts_count = City_Districts.select(fn.COUNT(City_Districts.district.distinct())).where(
+        City_Districts.city_name == selected_city if selected_city else True
+    ).scalar()
 
+    if total_districts_count is None:  # На случай, если COUNT вернул None
+        total_districts_count = 0
+
+    # Расчет пагинации
+    page_size = settings.bot.COUNT_IN_PAGE
+    total_pages = (total_districts_count + page_size - 1) // page_size if total_districts_count > 0 else 1
+
+    # Корректировка текущей страницы
+    if current_page < 1:
+        current_page = 1
+    elif current_page > total_pages:
+        current_page = total_pages
+
+    offset = (current_page - 1) * page_size
+
+    # Применение LIMIT и OFFSET для загрузки районов страницы
+    districts_on_page = (
+        base_query
+        .order_by(City_Districts.district)  # Всегда сортируем для стабильности пагинации
+        .limit(page_size)
+        .offset(offset)
+    )
+
+    other_parameters = {'selected_districts': selected_districts}
+
+    # Создание пагинированной клавиатуры
+    ikb = create_paginated_keyboard(
+        items_on_page=list(districts_on_page),
+        total_pages=total_pages,
+        current_page=current_page,
+        item_to_button_func=format_district_for_button,
+        items_in_row=2,
+        nav_prefix='districts',
+        other_parameters=other_parameters
+    )
+
+    # Добавление "Любой" и "Назад в меню"
     ikb.row(InlineKeyboardButton(text=get_text('any_option', lang), callback_data="any_option_districts"))
-
     ikb.row(
         InlineKeyboardButton(text=get_text('back', lang), callback_data="back"),
         InlineKeyboardButton(text=get_text('next', lang), callback_data="next")
     )
+
     return ikb.as_markup()
 
 
@@ -174,7 +217,7 @@ def get_confirm_settings_kb(lang: str = 'ru'):
 
 
 
-def get_search_settings_kb(user, lang):
+def get_search_settings_kb(user, lang, current_page_districts=1):
     active_params = Apartment_Parameters.select().where(
         (Apartment_Parameters.user == user) &
         (Apartment_Parameters.parameter == True)
@@ -197,6 +240,7 @@ def get_search_settings_kb(user, lang):
         SearchSettings.rent_select_price: get_rent_price_kb(selected_price=f"rent_price_{user.price}", lang=lang),
         SearchSettings.rent_select_area: get_area_kb(selected_area=f"area_{user.total_area}m", lang=lang),
         SearchSettings.rent_select_district: get_district_kb(
+            current_page=current_page_districts,
             selected_city=user.city,
             selected_districts=selected_districts,
             lang=lang
@@ -208,6 +252,7 @@ def get_search_settings_kb(user, lang):
         SearchSettings.buy_select_price: get_buy_price_kb(selected_price=f"buy_price_{user.price}", lang=lang),
         SearchSettings.buy_select_area: get_area_kb(selected_area=f"area_{user.total_area}m", lang=lang),
         SearchSettings.buy_select_district: get_district_kb(
+            current_page=current_page_districts,
             selected_city=user.city,
             selected_districts=selected_districts,
             lang=lang

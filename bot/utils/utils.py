@@ -131,6 +131,8 @@ async def search_realty(user, without_filters=None):
         if room_params:
             query = query.where(Realty.number_rooms.in_(room_params))
 
+    query = query.order_by(Realty.published_at.desc())
+
     return query
 
 def format_realty_card(realty) -> str:

@@ -27,6 +27,12 @@ async def start_search(call: CallbackQuery, state: FSMContext):
     # Получение QuerySet и применение LIMIT/OFFSET
     search_query = await search_realty(user, without_filters)
 
+    # Создаем копию QuerySet и удаляем ORDER BY перед COUNT
+    count_query = search_query.order_by()
+
+    # Выполняем быстрый запрос COUNT на очищенном QuerySet
+    total_results_count = count_query.select(fn.COUNT(Realty.id)).scalar()
+
     # Задаем LIMIT для первой страницы: на 1 больше, чтобы проверить наличие следующей
     limit = settings.bot.COUNT_CARDS_IN_BATCH + 1
     offset = 0  # Первая страница всегда OFFSET=0
@@ -40,9 +46,6 @@ async def start_search(call: CallbackQuery, state: FSMContext):
 
     # Проверяем, есть ли следующая страница (если результатов больше, чем лимит пачки)
     has_more = len(search_results) > settings.bot.COUNT_CARDS_IN_BATCH
-
-    # Выполняем быстрый запрос COUNT для получения общего числа
-    total_results_count = search_query.select(fn.COUNT(Realty.id)).scalar()
 
     result_text = f"{get_text('search_started', lang)}\n\n"
     if realty_to_show:
@@ -80,8 +83,9 @@ async def more(call: CallbackQuery):
     # more_<realty_id>_<page>
     try:
         data_parts = call.data.split('_')
-        realty_id = data_parts[-2]
-        page = int(data_parts[-1])
+        realty_id = data_parts[-3]
+        page = int(data_parts[-2])
+        without_filters = data_parts[-1]
     except (IndexError, ValueError):
         # Обработка некорректного колбэка
         await call.answer("Ошибка данных.", show_alert=True)
@@ -99,7 +103,7 @@ async def more(call: CallbackQuery):
     offset = (page - 1) * settings.bot.COUNT_CARDS_IN_BATCH
 
     # Вызов оптимизированного поиска
-    search_query = await search_realty(user)
+    search_query = await search_realty(user, without_filters)
 
     # Применяем LIMIT/OFFSET к QuerySet
     search_query = search_query.limit(limit).offset(offset)

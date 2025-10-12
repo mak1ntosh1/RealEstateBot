@@ -81,12 +81,19 @@ async def my_ads(call: CallbackQuery):
     user = Users.get(Users.user_id == call.from_user.id)
     lang = user.language
 
-    await call.message.delete()
-    await call.message.answer_photo(
-        photo=settings.images.MY_ADS,
-        caption=get_text('your_ads', lang),
-        reply_markup=get_my_ads_kb(current_page, lang, user)
-    )
+    if len(call.data.split('_')) > 2:
+        await call.answer()
+        await call.message.edit_caption(
+            caption=get_text('your_ads', lang),
+            reply_markup=get_my_ads_kb(current_page, lang, user)
+        )
+    else:
+        await call.message.delete()
+        await call.message.answer_photo(
+            photo=settings.images.MY_ADS,
+            caption=get_text('your_ads', lang),
+            reply_markup=get_my_ads_kb(current_page, lang, user)
+        )
 
 
 @router.callback_query(F.data.startswith('view_ad_'))

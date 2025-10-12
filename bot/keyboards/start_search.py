@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from bot.databases.database import Favorites, Users
 from bot.utils.utils import get_text, get_share_link
 
-def get_realty_card_kb(realty, user_id: int, page, lang: str = 'ru', this_last_one=0):
+def get_realty_card_kb(realty, user_id: int, page, lang: str = 'ru', this_last_one=0, without_filters=0):
     ikb = InlineKeyboardBuilder()
 
     share_link = get_share_link(realty, lang)
@@ -28,7 +28,7 @@ def get_realty_card_kb(realty, user_id: int, page, lang: str = 'ru', this_last_o
     ikb.row(InlineKeyboardButton(text=get_text('make_appointment', lang), callback_data=f"contact_{realty.id}_{this_last_one}_{page}"))
 
     if this_last_one and page:
-        ikb.row(InlineKeyboardButton(text=get_text('utils', lang), callback_data=f"more_{realty.id}_{page + 1}"))
+        ikb.row(InlineKeyboardButton(text=get_text('utils', lang), callback_data=f"more_{realty.id}_{page + 1}_{without_filters}"))
 
     return ikb.as_markup()
 

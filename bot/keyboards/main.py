@@ -78,8 +78,10 @@ def get_my_ads_kb(current_page, lang, user):
 
     ads_on_page = (
         user.ads.model.select().where(user.ads.model.user == user).order_by(
-            user.ads.model.id.desc()
+            user.ads.model.created_at.desc()
         ).limit(settings.bot.COUNT_IN_PAGE).offset(offset))
+
+    other_parameters = {'lang': lang}
 
     ikb = create_paginated_keyboard(
         items_on_page=list(ads_on_page),
@@ -88,7 +90,7 @@ def get_my_ads_kb(current_page, lang, user):
         item_to_button_func=format_my_ads_for_button,
         items_in_row=1,
         nav_prefix='my_ads',
-        lang=lang
+        other_parameters=other_parameters
     )
 
     ikb.row(InlineKeyboardButton(text=get_text('cancel', lang), callback_data=f'cancel_to_menu'))
