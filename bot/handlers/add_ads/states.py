@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
@@ -616,6 +617,7 @@ async def finish_add_ad(message: Message, state: FSMContext, user_id):
     realty.contact = data.get("contact")
     realty.agency = data.get("agency")
     realty.agency_name = data.get("agency_name")
+    realty.created_at = datetime.now().__str__()
     realty.save()
 
     await message.answer(get_text("success_saved", lang))

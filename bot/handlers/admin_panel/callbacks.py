@@ -1,3 +1,4 @@
+from datetime import datetime
 from contextlib import suppress
 
 from aiogram import F, Router
@@ -275,6 +276,7 @@ async def admin_accept_realty(call: CallbackQuery):
     realty = Realty.get(Realty.id == realty_id)
 
     realty.consent_admin = True
+    realty.published_at = datetime.now().__str__()
     realty.save()
 
     text = get_text_info_ad_incomplete(realty, 'ru') + f'\n\n<pre>✅ Опубликовано</pre>'

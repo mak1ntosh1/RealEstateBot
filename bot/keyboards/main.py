@@ -78,7 +78,7 @@ def get_my_ads_kb(current_page, lang, user):
 
     ads_on_page = (
         user.ads.model.select().where(user.ads.model.user == user).order_by(
-            user.ads.model.created_at.desc()
+            user.ads.model.desc()
         ).limit(settings.bot.COUNT_IN_PAGE).offset(offset))
 
     other_parameters = {'lang': lang}

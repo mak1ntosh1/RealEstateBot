@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Black">
-    <option name="sdkName" value="Python 3.12 (RealEstateBotNew)" />
+    <option name="sdkName" value="Python 3.12 (RealEstateBot)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (BotApp)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (RealEstateBot)" project-jdk-type="Python SDK" />
 </project>
