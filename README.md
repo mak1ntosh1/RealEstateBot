@@ -240,17 +240,31 @@ graph TD
 Схема базы данных, реализованная с помощью ORM Peewee.
 
 ```mermaid
+
 %%{
   init: {
     'theme': 'base',
     'themeVariables': {
-      'primaryColor': '#B2DFDB',      /* Светло-бирюзовый фон заголовка */
-      'primaryTextColor': '#333333',   /* Тёмный текст для заголовка */
-      'primaryBorderColor': '#4DB6AC',  /* Более тёмная бирюзовая рамка */
-      'lineColor': '#757575',          /* Нейтральный серый для связей */
-      'secondaryColor': '#F5F5F5',     /* Очень светлый фон тела таблицы */
-      'mainBkg': '#F5F5F5',            /* Основной фон тела таблицы */
-      'textColor': '#333333'           /* Тёмный основной текст */
+      'background': '#282C34',   
+      'primaryColor': '#3D4451',       
+      'primaryTextColor': '#ABB2BF',   
+      'primaryBorderColor': '#5C6370',   
+      'lineColor': '#98C379',
+      'tertiaryColor': '#61AFEF',       
+      'secondaryColor': '#C678DD',      
+      'mainBkg': '#282C34',             
+      'textColor': '#ABB2BF'           
+    }
+  },
+  'themeCSS': {
+    .node-start rect { fill: #56B6C2; stroke: #00BCD4; color: #000; }
+    .node-menu rect { fill: #98C379; stroke: #54AA54; color: #000; }
+    .node-fsm rect { fill: #C678DD; stroke: #9C27B0; color: #000; }
+    .node-dbop rect { fill: #E5C07B; stroke: #FFC107; color: #000; }
+    .node-db rect { fill: #61AFEF; stroke: #03A9F4; color: #000; }
+    .node-start text, .node-menu text, .node-fsm text, .node-dbop text, .node-db text {
+        fill: #000000;
+        color: #000000;
     }
   }
 }%%
