@@ -34,46 +34,78 @@
 Проект состоит из двух Docker Compose-приложений, разворачиваемых на одном сервере. `BotApp` обрабатывает всю логику взаимодействия с пользователем, в то время как `MonitoringStack` собирает метрики и логи для обеспечения стабильности и производительности.
 
 ```mermaid
-graph TD
-    subgraph "Пользователь"
-        U[📱 Пользователь Telegram]
+graph LR
+    %% === 1. Определения стилей для тёмной темы ===
+    classDef userStyle fill:#00b4d8,stroke:#90e0ef,stroke-width:2px,color:#fff
+    classDef appStyle fill:#007f5f,stroke:#70e000,stroke-width:1px,color:#fff
+    classDef dbStyle fill:#5e548e,stroke:#9f86c0,stroke-width:2px,color:#fff
+    classDef grafanaStyle fill:#f9844a,stroke:#e0e0e0,stroke-width:1px,color:#fff
+    classDef prometheusStyle fill:#e6522c,stroke:#e0e0e0,stroke-width:1px,color:#fff
+    classDef lokiStyle fill:#f37121,stroke:#e0e0e0,stroke-width:1px,color:#fff
+    classDef agentStyle fill:#fca311,stroke:#e0e0e0,stroke-width:1px,color:#fff
+    classDef hidden fill:transparent,stroke:transparent,color:transparent
+
+    %% === 2. Структура блоков (subgraphs) ===
+    subgraph "Клиент"
+        U["📱 Пользователь Telegram"]
     end
 
-    subgraph "Сервер"
-        subgraph "BotApp (docker-compose)"
-            BA[🤖 BotApp: Python/aiogram]
-            DB[(🗄️ PostgreSQL)]
+    subgraph "Инфраструктура на Сервере"
+        direction TB
+
+        subgraph "Приложение | BotApp"
+            direction LR
+            BA["🤖 Bot: Python/aiogram"]
+            DB[("🗄️ База данных: PostgreSQL")]
         end
 
-        subgraph "MonitoringStack (docker-compose)"
-            G[📊 Grafana]
-            P[📈 Prometheus]
-            L[📋 Loki]
-            PA[🛰️ Promtail]
-            CA[📦 cAdvisor]
-            NE[🖥️ Node Exporter]
+        subgraph "Мониторинг | MonitoringStack"
+            subgraph "Сборщики (Агенты)"
+                direction TB
+                PA["🛰️ Promtail"]
+            end
+            
+            subgraph "Хранилища"
+                L["📋 Loki"]
+                P["📈 Prometheus"]
+                L ~~~ P
+            end
+            
+            G["📊 Grafana"]
         end
     end
 
-    U -->|Telegram API| BA
-    BA <--> DB
+    %% === 3. Потоки данных и связи ===
+    U -- "TCP/HTTPS - Telegram Bot API" --> BA
+    BA <-->|ORM Peewee| DB
 
-    BA -- Логи --> PA
-    DB -- Логи --> PA
+    %% Поток логов
+    BA -.->|Логи| PA
+    DB -.->|Логи| PA
     PA --> L
 
-    CA -- Метрики контейнеров --> P
-    NE -- Метрики хоста --> P
+    %% Поток метрик
 
-    G -->|Запросы| P
-    G -->|Запросы| L
+    
+    %% Поток визуализации
+    G -- "Запросы PromQL" --> P
+    G -- "Запросы LogQL" --> L
 
-    style U fill:#D6EAF8
-    style BA fill:#D5F5E3
-    style DB fill:#E8DAEF
-    style G fill:#FCF3CF
-    style P fill:#FADBD8
-    style L fill:#FADBD8
+    %% === 4. Применение стилей к узлам ===
+    class U userStyle
+    class BA appStyle
+    class DB dbStyle
+    class G grafanaStyle
+    class P prometheusStyle
+    class L lokiStyle
+    class PA agentStyle
+
+    %% === 5. Стилизация связей ===
+    linkStyle 0 stroke:#00b4d8,stroke-width:2px,color:#fff
+    linkStyle 1 stroke:#a999c7,stroke-width:2px,stroke-dasharray:5 5,color:#fff
+    linkStyle 2,3 stroke:#f37121,stroke-width:2px,stroke-dasharray:3 3,color:#fff
+    linkStyle 4,5 stroke:#f37121,stroke-width:2px,color:#fff
+    linkStyle 6,7 stroke:#ccc,stroke-width:2px,stroke-dasharray:3 3,color:#fff
 ```
 
 ---
@@ -131,32 +163,70 @@ graph TD
 
 ```mermaid
 graph TD
-    Start((Start /start)) --> MainMenu{🏠 Главное меню}
+    %% === 1. Определения стилей для тёмной темы (Без изменений) ===
+    classDef startStyle fill:#00b4d8,stroke:#90e0ef,stroke-width:2px,color:#fff
+    classDef menuStyle fill:#1a936f,stroke:#70e000,stroke-width:2px,color:#fff,font-size:16px,font-weight:bold
+    classDef fsmStyle fill:#5e548e,stroke:#9f86c0,stroke-width:1px,color:#fff
+    classDef dbOpStyle fill:#fca311,stroke:#e0e0e0,stroke-width:1px,color:#212121,font-weight:bold
+    classDef dbStyle fill:#3d34a5,stroke:#c9ada7,stroke-width:2px,color:#fff
+    classDef resultStyle fill:#007f5f,stroke:#9ef01a,stroke-width:1px,color:#fff
+    classDef finalStyle fill:#43aa8b,stroke:#b5e48c,stroke-width:1px,color:#fff
+    classDef buttonStyle fill:#3a5a40,stroke:#a3b18a,stroke-width:1px,color:#fff
+    classDef LinkStyle fill:#219ebc,stroke:#a3b18a,stroke-width:1px,color:#fff
 
-    subgraph "Поиск объявлений"
-        MainMenu --> B1[🎯 Настроить поиск]
-        B1 --> FSM_Search_1[State: Выбор города]
-        FSM_Search_1 --> FSM_Search_2[State: Выбор цены]
-        FSM_Search_2 --> FSM_Search_3[...]
-        FSM_Search_3 --> B2[🔍 Начать поиск]
-        B2 -- Запрос в БД --> DB[(🗄️ PostgreSQL)]
-        DB -- Результаты --> ShowResults[Показ объявлений с пагинацией]
-        ShowResults --> MainMenu
-    end
-
-    subgraph "Добавление объявления"
-        MainMenu --> B3[➕ Добавить объявление]
-        B3 --> FSM_Add_1[State: Выбор города]
-        FSM_Add_1 --> FSM_Add_2[State: Ввод цены]
-        FSM_Add_2 --> FSM_Add_3[State: Загрузка фото]
-        FSM_Add_3 --> FSM_Add_4[...]
-        FSM_Add_4 --> SaveAd[Сохранение в БД на модерации]
-        SaveAd --> NotifyAdmin[Уведомление администратора]
-        NotifyAdmin --> EndAd((Готово))
-    end
+    %% === 2. Основной поток и меню ===
+    Start((🚀 /start)) --> MainMenu{🏛️ ГЛАВНОЕ МЕНЮ}
     
-    style Start fill:#D6EAF8
-    style MainMenu fill:#D5F5E3
+    %% Блоки, ведущие к поиску
+    B1["🧭 Поиск без фильтров"]:::buttonStyle
+    B2["🔍 Начать поиск (по фильтрам)"]:::buttonStyle
+    B5["📂 Мои объявления"]:::buttonStyle
+    B6["⭐ Избранное"]:::buttonStyle
+
+    MainMenu --> B1
+    MainMenu --> B2
+    MainMenu --> B3["🎯 Настроить поиск"]:::buttonStyle
+    MainMenu --> B4["➕ Добавить объявление"]:::buttonStyle
+    MainMenu --> B5
+    MainMenu --> B6
+    
+    %% Потоки поиска/просмотра
+    subgraph "Поиск и отображение"
+        direction LR
+        subgraph "Поток запроса"
+            B1 --> QueryGen
+            B2 --> QueryGen
+            B5 --> QueryGen
+            B6 --> QueryGen
+        end
+        QueryGen["Формирование запроса в БД"]:::dbOpStyle --> DB[(🗄️ PostgreSQL)]:::dbStyle
+        DB -->|"Результаты"| ShowResults["📊 Показ объявлений с пагинацией"]:::resultStyle
+    end
+
+    %% === 3. FSM: Настройка поиска ===
+    subgraph "FSM: Настройка поиска"
+        direction TB
+        B3 --> FSM_Search_1["1. Выбор города"]:::fsmStyle
+        FSM_Search_1 --> FSM_Search_2["2. Выбор цены"]:::fsmStyle
+        FSM_Search_2 --> FSM_Search_3["..."]:::fsmStyle
+        FSM_Search_3 --> SaveFilters["💾 Сохранение фильтров в БД"]:::dbOpStyle
+    end
+ 
+
+    %% === 4. FSM: Добавление объявления ===
+    subgraph "FSM: Добавление объявления"
+        direction TB
+        B4 --> FSM_Add_1["1. Выбор города"]:::fsmStyle
+        FSM_Add_1 --> FSM_Add_2["2. Ввод цены"]:::fsmStyle
+        FSM_Add_2 --> FSM_Add_3["..."]:::fsmStyle
+        FSM_Add_3 -- "Статус: на модерации" --> SaveAd["💾 Сохранение в БД"]:::dbStyle
+        SaveAd --> NotifyAdmin["📨 Уведомление администратора"]:::resultStyle
+        NotifyAdmin --> EndAd((✅ Готово)):::finalStyle
+    end
+
+    %% === 5. Применение стилей (для тех, что не применены в шаге 2) ===
+    class Start startStyle
+    class MainMenu menuStyle
 ```
 
 ### 🔧 Установка и запуск
@@ -311,43 +381,61 @@ erDiagram
 
 ```mermaid
 graph TD
+    %% === 1. Определения стилей для тёмной темы ===
+    classDef appStyle fill:#007f5f,stroke:#70e000,stroke-width:1.5px,color:#fff
+    classDef dbStyle fill:#5e548e,stroke:#9f86c0,stroke-width:1.5px,color:#fff
+    classDef vizStyle fill:#f9844a,stroke:#e0e0e0,stroke-width:1.5px,color:#fff
+    classDef metricStoreStyle fill:#e6522c,stroke:#e0e0e0,stroke-width:1.5px,color:#fff
+    classDef logStoreStyle fill:#f37121,stroke:#e0e0e0,stroke-width:1.5px,color:#fff
+    classDef agentStyle fill:#fca311,stroke:#e0e0e0,stroke-width:1.5px,color:#fff,font-weight:bold
+    classDef interfaceStyle fill:#219ebc,stroke:#00b4d8,stroke-width:2px,color:#fff
+
+    %% === 2. Структура блоков ===
     subgraph "Хост-машина (Сервер)"
-        D_Sock((Docker Socket))
-        FS(("Файловая система"))
-        
-        subgraph "Docker Контейнеры"
+        D_Sock((⚙️ Docker Socket))
+        subgraph "Контейнеры Приложения"
+            direction LR
             C1[🤖 BotApp]
-            C2[🗄 PostgreSQL]
+            C2[🗄️ PostgreSQL]
+        end
+
+        subgraph "Стек Мониторинга (Docker)"
+            direction TB
+            Promtail["🛰️ Promtail"]
+            
+            subgraph "Хранилища данных"
+                direction LR
+                Loki["📋 Loki"]
+                Prometheus["📈 Prometheus"]
+            end
+            
+            Grafana["📊 Grafana"]
         end
     end
-
-    subgraph "Стек Мониторинга (Docker)"
-        Prometheus
-        Loki
-        Grafana
-        Promtail
-        cAdvisor
-        NodeExporter
-    end
-
-    C1 -- stdout/stderr --> D_Sock
-    C2 -- stdout/stderr --> D_Sock
-    C3 -- stdout/stderr --> D_Sock
-
-    Promtail -- Читает логи --> D_Sock
-    Promtail -- Отправляет логи --> Loki
-
-    cAdvisor -- Читает метрики контейнеров --> D_Sock
-    cAdvisor -- Отдает метрики --> Prometheus
-
-    NodeExporter -- Читает метрики хоста --> FS
-    NodeExporter -- Отдает метрики --> Prometheus
+    %% === 3. Потоки данных ===
     
-    Grafana -- Запрашивает данные --> Prometheus
-    Grafana -- Запрашивает данные --> Loki
+    %% Поток логов от контейнеров к Promtail
+    C1 -- "stdout/stderr" --> D_Sock
+    C2 -- "stdout/stderr" --> D_Sock
+    D_Sock -- "Читает логи" --> Promtail
+    Promtail -- "Отправляет логи" --> Loki
 
-    style C1 fill:#D5F5E3
-    style C2 fill:#E8DAEF
+    %% Поток данных в Grafana (правильное направление: Grafana запрашивает данные)
+    Grafana -- "Запросы LogQL" --> Loki
+    Grafana -- "Запросы PromQL" --> Prometheus
+    
+    %% === 4. Применение стилей ===
+    class C1 appStyle
+    class C2 dbStyle
+    class Grafana vizStyle
+    class Prometheus metricStoreStyle
+    class Loki logStoreStyle
+    class Promtail agentStyle
+    class D_Sock interfaceStyle
+
+    %% === 5. Стилизация связей ===
+    linkStyle 0,1,2,3 stroke:#fca311,stroke-width:2px,color:#fff
+    linkStyle 4,5 stroke:#fff,stroke-width:2px,stroke-dasharray:5 5,color:#fff
 ```
 
 ### ⚙️ Ключевые компоненты
