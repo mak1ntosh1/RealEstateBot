@@ -34,78 +34,47 @@
 Проект состоит из двух Docker Compose-приложений, разворачиваемых на одном сервере. `BotApp` обрабатывает всю логику взаимодействия с пользователем, в то время как `MonitoringStack` собирает метрики и логи для обеспечения стабильности и производительности.
 
 ```mermaid
-graph LR
+graph TD
     %% === 1. Определения стилей для тёмной темы ===
     classDef userStyle fill:#00b4d8,stroke:#90e0ef,stroke-width:2px,color:#fff
-    classDef appStyle fill:#007f5f,stroke:#70e000,stroke-width:1px,color:#fff
-    classDef dbStyle fill:#5e548e,stroke:#9f86c0,stroke-width:2px,color:#fff
-    classDef grafanaStyle fill:#f9844a,stroke:#e0e0e0,stroke-width:1px,color:#fff
-    classDef prometheusStyle fill:#e6522c,stroke:#e0e0e0,stroke-width:1px,color:#fff
-    classDef lokiStyle fill:#f37121,stroke:#e0e0e0,stroke-width:1px,color:#fff
-    classDef agentStyle fill:#fca311,stroke:#e0e0e0,stroke-width:1px,color:#fff
-    classDef hidden fill:transparent,stroke:transparent,color:transparent
+    classDef appStyle fill:#007f5f,stroke:#70e000,stroke-width:1.5px,color:#fff
+    classDef dbStyle fill:#5e548e,stroke:#9f86c0,stroke-width:1.5px,color:#fff
+    classDef grafanaStyle fill:#f9844a,stroke:#e0e0e0,stroke-width:1.5px,color:#fff
 
-    %% === 2. Структура блоков (subgraphs) ===
+    %% === 2. Структура блоков ===
     subgraph "Клиент"
         U["📱 Пользователь Telegram"]
     end
 
     subgraph "Инфраструктура на Сервере"
         direction TB
-
+        
         subgraph "Приложение | BotApp"
-            direction LR
             BA["🤖 Bot: Python/aiogram"]
             DB[("🗄️ База данных: PostgreSQL")]
         end
 
-        subgraph "Мониторинг | MonitoringStack"
-            subgraph "Сборщики (Агенты)"
-                direction TB
-                PA["🛰️ Promtail"]
-            end
-            
-            subgraph "Хранилища"
-                L["📋 Loki"]
-                P["📈 Prometheus"]
-                L ~~~ P
-            end
-            
-            G["📊 Grafana"]
-        end
+        G["📊 Мониторинг (Grafana)"]
     end
 
     %% === 3. Потоки данных и связи ===
     U -- "TCP/HTTPS - Telegram Bot API" --> BA
     BA <-->|ORM Peewee| DB
-
-    %% Поток логов
-    BA -.->|Логи| PA
-    DB -.->|Логи| PA
-    PA --> L
-
-    %% Поток метрик
-
     
-    %% Поток визуализации
-    G -- "Запросы PromQL" --> P
-    G -- "Запросы LogQL" --> L
+    %% Показываем, что оба компонента являются источниками данных для мониторинга
+    BA -.-> |"Логи"| G
+    DB -.-> |"Логи"| G
 
     %% === 4. Применение стилей к узлам ===
     class U userStyle
     class BA appStyle
     class DB dbStyle
     class G grafanaStyle
-    class P prometheusStyle
-    class L lokiStyle
-    class PA agentStyle
 
     %% === 5. Стилизация связей ===
     linkStyle 0 stroke:#00b4d8,stroke-width:2px,color:#fff
     linkStyle 1 stroke:#a999c7,stroke-width:2px,stroke-dasharray:5 5,color:#fff
-    linkStyle 2,3 stroke:#f37121,stroke-width:2px,stroke-dasharray:3 3,color:#fff
-    linkStyle 4,5 stroke:#f37121,stroke-width:2px,color:#fff
-    linkStyle 6,7 stroke:#ccc,stroke-width:2px,stroke-dasharray:3 3,color:#fff
+    linkStyle 2,3 stroke:#fca311,stroke-width:2px,stroke-dasharray:3 3,color:#fff
 ```
 
 ---
@@ -271,57 +240,93 @@ graph TD
 Схема базы данных, реализованная с помощью ORM Peewee.
 
 ```mermaid
+%%{
+  init: {
+    'theme': 'base',
+    'themeVariables': {
+      'primaryColor': '#B2DFDB',      /* Светло-бирюзовый фон заголовка */
+      'primaryTextColor': '#333333',   /* Тёмный текст для заголовка */
+      'primaryBorderColor': '#4DB6AC',  /* Более тёмная бирюзовая рамка */
+      'lineColor': '#757575',          /* Нейтральный серый для связей */
+      'secondaryColor': '#F5F5F5',     /* Очень светлый фон тела таблицы */
+      'mainBkg': '#F5F5F5',            /* Основной фон тела таблицы */
+      'textColor': '#333333'           /* Тёмный основной текст */
+    }
+  }
+}%%
+
 erDiagram
     USERS {
         int id PK
-        bigint user_id UK
+        bigint user_id UK "Уникальный ID пользователя в Telegram"
         varchar username
-        varchar language
-        varchar city
-        int price
+        varchar language "Язык интерфейса (ru, en, tr)"
+        varchar contact "Контакт пользователя (если есть)"
+        varchar ad_type "Тип сделки для поиска (rent/sale)"
+        varchar type_object "Тип объекта для поиска"
+        varchar type_property "Тип недвижимости для поиска"
+        varchar city "Город для поиска"
+        int price "Бюджет для поиска"
+        int total_area "Площадь для поиска"
     }
 
     REALTY {
         int id PK
-        int user_id FK
+        int user_id FK "Автор объявления"
+        varchar number_rooms "Кол-во комнат (e.g., 'rooms_2_1')"
+        varchar floors_in_house "Этажность дома"
+        varchar floor "Этаж квартиры"
+        varchar square "Площадь"
         varchar city
+        varchar ad_type "Тип сделки (rent/sale)"
+        varchar type_property "Новостройка/вторичка"
+        varchar object_type "Квартира/вилла/дуплекс"
+        varchar street
         varchar district
         varchar price
-        varchar square
         varchar description
-        boolean consent_admin
+        varchar furniture "Наличие мебели"
+        varchar animals "Отношение к животным"
+        varchar children "Отношение к детям"
+        varchar name "Имя контактного лица"
+        varchar contact "Телефон контактного лица"
+        varchar agency "Тип продавца (owner/realtor)"
+        varchar agency_name "Название агентства"
+        boolean consent_admin "Статус модерации (одобрено/нет)"
+        datetime created_at "Дата создания"
+        datetime published_at "Дата публикации"
     }
 
     PHOTOSREALTY {
         int id PK
-        int realty_id FK
-        varchar file_id UK
+        int realty_id FK "К какому объявлению относится"
+        varchar file_id UK "Уникальный ID файла в Telegram"
     }
 
     FAVORITES {
         int id PK
-        int user_id FK
-        int realty_id FK
+        int user_id FK "Кто добавил в избранное"
+        int realty_id FK "Какое объявление добавлено"
     }
 
     APARTMENT_PARAMETERS {
         int id PK
-        int user_id FK
-        varchar title_parameter
-        boolean parameter
+        int user_id FK "Чьи настройки поиска"
+        varchar title_parameter "Название параметра (район, кол-во комнат)"
+        boolean parameter "Включен ли параметр"
     }
 
     CITY_DISTRICTS {
         int id PK
         varchar city_name
-        varchar district
+        varchar district "Название района"
     }
 
     USERS ||--o{ REALTY : "создает"
     USERS ||--o{ FAVORITES : "добавляет в"
-    REALTY ||--o{ PHOTOSREALTY : "имеет"
-    REALTY ||--o{ FAVORITES : "добавляется в"
     USERS ||--o{ APARTMENT_PARAMETERS : "настраивает"
+    REALTY ||--o{ PHOTOSREALTY : "имеет"
+    REALTY ||--|{ FAVORITES : "добавляется в"
 ```
 
 ### 📂 Обзор обработчиков (Handlers)
