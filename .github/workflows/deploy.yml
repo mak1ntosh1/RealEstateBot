@@ -8,12 +8,12 @@ on:
 jobs:
 
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, mak1ntosh1.less-cock]
 
     steps:
     - name: 🚀 Подтягиваем изменения на сервер
       uses: actions/checkout@v4
-#
+
     - name: 🐳 Деплоим на Ubuntu Server
       run: |
         PROJECT_NAME="realestatebot-project"
