@@ -33,7 +33,7 @@ def get_realty_card_kb(realty, user_id: int, page, lang: str = 'ru', this_last_o
     return ikb.as_markup()
 
 
-def get_realty_card2_kb(realty, photo_number, user_id: int, lang: str = 'ru', this_last_one=0, page=None, is_favorites=0):
+def get_realty_card2_kb(realty, photo_number, user_id: int, lang: str = 'ru', this_last_one=0, page=None, is_favorites: int = 0):
     ikb = InlineKeyboardBuilder()
 
     share_link = get_share_link(realty, lang)
@@ -50,7 +50,6 @@ def get_realty_card2_kb(realty, photo_number, user_id: int, lang: str = 'ru', th
         text=get_text('next_photo', lang),
         callback_data=f'card_next_photo_{realty.id}_{photo_number}_{page}_{this_last_one}'
     ))
-
     ikb.row(
         InlineKeyboardButton(
             text=get_text('remove_from_favorites', lang) if is_favorite else get_text('add_to_favorites', lang),

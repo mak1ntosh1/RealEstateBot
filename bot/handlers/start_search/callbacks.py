@@ -176,7 +176,7 @@ async def get_contact(call: CallbackQuery):
 
 
 @router.callback_query(F.data.startswith("card_in_detail_"))
-async def card_in_detail(call: CallbackQuery, new_call_data=None, is_favorites=False):
+async def card_in_detail(call: CallbackQuery, new_call_data=None, is_favorites=0):
     call_data = new_call_data if is_favorites else call.data
     realty_id = call_data.split('_', 5)[-3]
     page = int(call_data.split('_', 5)[-2])

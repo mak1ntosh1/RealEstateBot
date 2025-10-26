@@ -3,6 +3,7 @@ import math
 from aiogram.types import InlineKeyboardButton, KeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 
+from bot.databases.database import Realty
 from bot.keyboards.utils import create_paginated_keyboard, format_my_ads_for_button
 from bot.utils.utils import get_text, get_share_link_to_bot
 from config import settings
@@ -76,10 +77,7 @@ def get_my_ads_kb(current_page, lang, user):
     # Если current_page = 1, OFFSET = 0. OFFSET всегда >= 0.
     offset = (current_page - 1) * settings.bot.COUNT_IN_PAGE
 
-    ads_on_page = (
-        user.ads.model.select().where(user.ads.model.user == user).order_by(
-            user.ads.desc()
-        ).limit(settings.bot.COUNT_IN_PAGE).offset(offset))
+    ads_on_page = user.ads.select().order_by(Realty.created_at.desc()).limit(settings.bot.COUNT_IN_PAGE).offset(offset)
 
     other_parameters = {'lang': lang}
 
