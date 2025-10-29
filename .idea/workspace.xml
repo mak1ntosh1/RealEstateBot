@@ -5,20 +5,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="688dc01e-fb8c-44fc-ab96-d0a6003a0fed" name="Changes" comment="Документация">
-      <change beforePath="$PROJECT_DIR$/.idea/BotApp.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/BotApp.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ml/data/HouseData.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ml/notebooks/research_house_price_dataset.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ml/src/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot/handlers/start_search/callbacks.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/handlers/start_search/callbacks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot/keyboards/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/keyboards/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bot/keyboards/start_search.py" beforeDir="false" afterPath="$PROJECT_DIR$/bot/keyboards/start_search.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Jupyter Notebook" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo">{
@@ -34,15 +45,30 @@
   "keyToString": {
     "Python.main.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "ml",
+    "last_opened_file_path": "C:/Users/stati/PycharmProjects/makintoshi/RealEstateBot/BotApp/ml/src",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.notebooks.jupyter.connections.configuration.JupyterServerConfigurable",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\stati\PycharmProjects\makintoshi\RealEstateBot\BotApp\ml\src" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\stati\PycharmProjects\makintoshi\RealEstateBot\BotApp\ml\data" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="BotApp" />
@@ -91,7 +117,9 @@
       <updated>1761428221517</updated>
       <workItem from="1761428223335" duration="2645000" />
       <workItem from="1761433627034" duration="3281000" />
-      <workItem from="1761480211128" duration="1430000" />
+      <workItem from="1761480211128" duration="4678000" />
+      <workItem from="1761571990043" duration="35000" />
+      <workItem from="1761755100381" duration="4485000" />
     </task>
     <task id="LOCAL-00001" summary="Документация">
       <option name="closed" value="true" />
@@ -157,7 +185,15 @@
       <option name="project" value="LOCAL" />
       <updated>1761480321473</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Документация">
+      <option name="closed" value="true" />
+      <created>1761482160494</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1761482160494</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
